@@ -1,0 +1,94 @@
+'use client';
+
+import { motion } from 'framer-motion';
+import DropZone from '@/components/upload/DropZone';
+import { Sparkle, Target, Rocket, ChartLineUp } from '@phosphor-icons/react';
+import { useLanguageStore } from '@/stores/useLanguageStore';
+import { translations } from '@/lib/translations';
+
+export default function Home() {
+  const { lang } = useLanguageStore();
+  const t = translations[lang];
+
+  const features = [
+    {
+      icon: <ChartLineUp size={32} weight="duotone" className="text-brand-primary" />,
+      title: t.atsScore,
+      description: "Get a detailed 0-100 score based on formatting, skills, and experience."
+    },
+    {
+      icon: <Target size={32} weight="duotone" className="text-brand-success" />,
+      title: "ATS Optimization",
+      description: "Ensure your resume passes through Applicant Tracking Systems easily."
+    },
+    {
+      icon: <Rocket size={32} weight="duotone" className="text-brand-warning" />,
+      title: "Career Growth",
+      description: "Receive actionable suggestions to improve your professional profile."
+    }
+  ];
+
+  return (
+    <div className="relative isolate pt-14 pb-20">
+      {/* Background Decorative Elements */}
+      <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
+        <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-brand-primary to-[#9089fc] opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"></div>
+      </div>
+
+      <div className="container mx-auto px-6">
+        {/* Hero Section */}
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-brand-primary text-sm font-medium mb-6">
+              <Sparkle weight="fill" />
+              Powered by Groq Llama 3 AI
+            </span>
+            <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 leading-tight">
+              {t.heroTitle.split(' ').map((word, i) => (
+                <span key={i} className={word === 'Resume' || word === 'ریزیومے' || word === 'السيرة' ? 'text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-cyan-400' : ''}>
+                  {word}{' '}
+                </span>
+              ))}
+            </h1>
+            <p className="text-xl text-text-muted mb-10 leading-relaxed">
+              {t.heroSub}
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            <DropZone />
+          </motion.div>
+        </div>
+
+        {/* Feature Grid */}
+        <div className="grid md:grid-cols-3 gap-8 mt-24">
+          {features.map((feature, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 + index * 0.1 }}
+              className="glass-card p-8 hover:border-white/20 transition-colors group"
+            >
+              <div className="mb-4 group-hover:scale-110 transition-transform duration-300">
+                {feature.icon}
+              </div>
+              <h3 className="text-xl font-heading mb-2">{feature.title}</h3>
+              <p className="text-text-muted leading-relaxed">
+                {feature.description}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

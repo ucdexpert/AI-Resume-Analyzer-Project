@@ -1,0 +1,337 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import useBuilderStore from '@/stores/useBuilderStore';
+import { 
+  saveBuilderResume, 
+  getBuilderResume, 
+  generateBuilderPDF, 
+  generateAISummary 
+} from '@/lib/api';
+import { 
+  User, Briefcase, GraduationCap, Wrench, 
+  DownloadSimple, Plus, Trash, FilePdf, 
+  CloudArrowUp, MagicWand, GithubLogo, Globe, 
+  Certificate, CheckCircle
+} from '@phosphor-icons/react';
+import { motion, AnimatePresence } from 'framer-motion';
+import ResumePreview from './ResumePreview';
+
+export default function ResumeBuilder() {
+  const store = useBuilderStore();
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [skillInput, setSkillInput] = useState('');
+  const [aiGenerating, setAiGenerating] = useState(false);
+
+  // Load existing resume on mount
+  useEffect(() => {
+    const loadResume = async () => {
+      try {
+        const data = await getBuilderResume();
+        if (data && Object.keys(data).length > 0) {
+          store.setAll(data);
+        }
+      } catch (err) {
+        console.error("Failed to load resume", err);
+      }
+    };
+    loadResume();
+  }, []);
+
+  // Auto-save logic
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (store.full_name && store.email) {
+        handleSave(true);
+      }
+    }, 30000); // Auto save every 30 seconds
+    return () => clearTimeout(timer);
+  }, [store]);
+
+  const handleSave = async (isAuto = false) => {
+    if (!isAuto) setSaving(true);
+    try {
+      await saveBuilderResume(store);
+      setLastSaved(new Date().toLocaleTimeString());
+    } catch (err) {
+      if (!isAuto) alert("Failed to save resume");
+    } finally {
+      if (!isAuto) setSaving(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    setLoading(true);
+    try {
+      const blob = await generateBuilderPDF(store);
+      const url = window.URL.createObjectURL(new Blob([blob]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${store.full_name.replace(/\s+/g, '_')}_Resume.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+    } catch (err) {
+      alert("Failed to generate PDF.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAiSummary = async () => {
+    setAiGenerating(true);
+    try {
+      const res = await generateAISummary({
+        full_name: store.full_name,
+        skills: store.skills,
+        experience: store.experience.filter(exp => exp.job_title) // Only send valid experience
+      });
+      store.updateField('summary', res.summary);
+    } catch (err) {
+      alert("Failed to generate AI summary.");
+    } finally {
+      setAiGenerating(false);
+    }
+  };
+
+  const handleAddSkill = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && skillInput.trim()) {
+      e.preventDefault();
+      store.addSkill(skillInput.trim());
+      setSkillInput('');
+    }
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-4xl font-heading font-bold text-white mb-2">Resume Builder</h1>
+          <p className="text-text-muted">Create a professional resume in minutes with AI assistance.</p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <div className="flex items-center gap-2 mr-4 text-xs text-text-muted">
+            {saving ? (
+              <span className="animate-pulse">Saving...</span>
+            ) : lastSaved ? (
+              <span className="flex items-center gap-1"><CheckCircle className="text-brand-success" /> Last saved: {lastSaved}</span>
+            ) : null}
+          </div>
+          <button onClick={() => handleSave()} disabled={saving} className="glass-card !bg-white/5 border-white/10 px-4 py-2 text-sm flex items-center gap-2 hover:bg-white/10 transition-all">
+            <CloudArrowUp size={20} />
+            {saving ? 'Saving...' : 'Save'}
+          </button>
+          <button onClick={handleDownload} disabled={loading || !store.full_name} className="neon-button !py-2 !px-6 flex items-center gap-2">
+            {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <FilePdf size={20} weight="fill" />}
+            Download PDF
+          </button>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-8 items-start">
+        {/* FORM SIDE */}
+        <div className="space-y-8 max-h-[85vh] overflow-y-auto pr-2 custom-scrollbar">
+          {/* 1. Personal Information */}
+          <Section title="Personal Information" icon={<User size={24} />} color="brand-primary">
+            <div className="grid md:grid-cols-2 gap-4">
+              <Input label="Full Name" value={store.full_name} onChange={(val) => store.updateField('full_name', val)} placeholder="Muhammad Uzair" />
+              <Input label="Email" type="email" value={store.email} onChange={(val) => store.updateField('email', val)} placeholder="uzair@example.com" />
+              <Input label="Phone" value={store.phone} onChange={(val) => store.updateField('phone', val)} placeholder="+92 300 1234567" />
+              <Input label="Location" value={store.location} onChange={(val) => store.updateField('location', val)} placeholder="Karachi, Pakistan" />
+              <Input label="LinkedIn" value={store.linkedin} onChange={(val) => store.updateField('linkedin', val)} placeholder="linkedin.com/in/username" icon={<Globe />} />
+              <Input label="Portfolio" value={store.portfolio} onChange={(val) => store.updateField('portfolio', val)} placeholder="portfolio.com" icon={<Globe />} />
+            </div>
+          </Section>
+
+          {/* 2. Professional Summary */}
+          <Section title="Professional Summary" icon={<MagicWand size={24} />} color="brand-warning" 
+                   action={<button onClick={handleAiSummary} disabled={aiGenerating} className="text-[10px] bg-brand-warning/10 text-brand-warning border border-brand-warning/20 px-2 py-1 rounded flex items-center gap-1 hover:bg-brand-warning/20 transition-all">
+                             <MagicWand /> {aiGenerating ? 'Generating...' : 'AI Generate ✨'}
+                           </button>}>
+            <textarea
+              value={store.summary}
+              onChange={(e) => store.updateField('summary', e.target.value)}
+              className="w-full h-32 p-4 bg-white/5 border border-white/10 rounded-xl text-text-primary outline-none focus:border-brand-warning/50 resize-none transition-all"
+              placeholder="Brief overview of your professional background..."
+            />
+            <div className="flex justify-between mt-1 px-1">
+                <span className="text-[10px] text-text-muted">{store.summary.length} characters</span>
+                <span className="text-[10px] text-text-muted">Min: 50 | Max: 500</span>
+            </div>
+          </Section>
+
+          {/* 3. Work Experience */}
+          <Section title="Work Experience" icon={<Briefcase size={24} />} color="brand-success"
+                   action={<button onClick={store.addExperience} className="p-1.5 bg-brand-success/10 text-brand-success rounded-lg hover:bg-brand-success/20"><Plus weight="bold" /></button>}>
+            <div className="space-y-6">
+              {store.experience.map((exp) => (
+                <div key={exp.id} className="relative p-5 bg-white/5 rounded-2xl border border-white/5 group">
+                  <button onClick={() => store.removeExperience(exp.id)} className="absolute -top-2 -right-2 p-1.5 bg-brand-danger/20 text-brand-danger rounded-full opacity-0 group-hover:opacity-100 transition-all"><Trash size={14} /></button>
+                  <div className="grid md:grid-cols-2 gap-4 mb-4">
+                    <Input label="Job Title" value={exp.job_title} onChange={(val) => store.updateExperience(exp.id, 'job_title', val)} placeholder="Full Stack Developer" />
+                    <Input label="Company" value={exp.company} onChange={(val) => store.updateExperience(exp.id, 'company', val)} placeholder="Google" />
+                  </div>
+                  <Input label="Dates" value={exp.dates} onChange={(val) => store.updateExperience(exp.id, 'dates', val)} placeholder="2021 - Present" />
+                  <div className="mt-4">
+                    <label className="block text-xs font-bold text-text-muted uppercase mb-2">Description</label>
+                    <textarea
+                      value={exp.description}
+                      onChange={(e) => store.updateExperience(exp.id, 'description', e.target.value)}
+                      className="w-full h-24 p-3 bg-white/5 border border-white/10 rounded-xl text-text-primary outline-none focus:border-brand-success/50 resize-none text-sm"
+                      placeholder="• Built AI powered apps..."
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Section>
+
+          {/* 4. Education */}
+          <Section title="Education" icon={<GraduationCap size={24} />} color="brand-primary"
+                   action={<button onClick={store.addEducation} className="p-1.5 bg-brand-primary/10 text-brand-primary rounded-lg hover:bg-brand-primary/20"><Plus weight="bold" /></button>}>
+            <div className="space-y-6">
+              {store.education.map((edu) => (
+                <div key={edu.id} className="relative p-5 bg-white/5 rounded-2xl border border-white/5 group">
+                  <button onClick={() => store.removeEducation(edu.id)} className="absolute -top-2 -right-2 p-1.5 bg-brand-danger/20 text-brand-danger rounded-full opacity-0 group-hover:opacity-100 transition-all"><Trash size={14} /></button>
+                  <div className="grid md:grid-cols-2 gap-4 mb-4">
+                    <Input label="Degree" value={edu.degree} onChange={(val) => store.updateEducation(edu.id, 'degree', val)} placeholder="BS Computer Science" />
+                    <Input label="School/University" value={edu.school} onChange={(val) => store.updateEducation(edu.id, 'school', val)} placeholder="FAST University" />
+                  </div>
+                  <Input label="Dates" value={edu.dates} onChange={(val) => store.updateEducation(edu.id, 'dates', val)} placeholder="2019 - 2023" />
+                </div>
+              ))}
+            </div>
+          </Section>
+
+          {/* 5. Skills */}
+          <Section title="Skills" icon={<Wrench size={24} />} color="brand-secondary">
+             <div className="relative">
+                <input
+                    type="text"
+                    value={skillInput}
+                    onChange={(e) => setSkillInput(e.target.value)}
+                    onKeyDown={handleAddSkill}
+                    placeholder="Type skill and press Enter (e.g. Next.js)"
+                    className="w-full p-4 bg-white/5 border border-white/10 rounded-xl text-text-primary outline-none focus:border-brand-secondary/50"
+                />
+                <div className="flex flex-wrap gap-2 mt-4">
+                    <AnimatePresence>
+                        {store.skills.map((skill) => (
+                            <motion.span
+                                key={skill}
+                                initial={{ scale: 0.8, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.8, opacity: 0 }}
+                                className="px-3 py-1.5 bg-brand-secondary/10 text-brand-secondary border border-brand-secondary/20 rounded-lg text-sm flex items-center gap-2"
+                            >
+                                {skill}
+                                <button onClick={() => store.removeSkill(skill)}><Trash size={14} className="hover:text-brand-danger transition-colors" /></button>
+                            </motion.span>
+                        ))}
+                    </AnimatePresence>
+                </div>
+             </div>
+          </Section>
+
+          {/* 6. Projects */}
+          <Section title="Projects" icon={<GithubLogo size={24} />} color="brand-info"
+                   action={<button onClick={store.addProject} className="p-1.5 bg-brand-info/10 text-brand-info rounded-lg hover:bg-brand-info/20"><Plus weight="bold" /></button>}>
+            <div className="space-y-6">
+                {store.projects.map((proj) => (
+                    <div key={proj.id} className="relative p-5 bg-white/5 rounded-2xl border border-white/5 group">
+                        <button onClick={() => store.removeProject(proj.id)} className="absolute -top-2 -right-2 p-1.5 bg-brand-danger/20 text-brand-danger rounded-full opacity-0 group-hover:opacity-100 transition-all"><Trash size={14} /></button>
+                        <div className="grid md:grid-cols-2 gap-4 mb-4">
+                            <Input label="Project Name" value={proj.name} onChange={(val) => store.updateProject(proj.id, 'name', val)} placeholder="AI Resume Analyzer" />
+                            <Input label="Tech Stack" value={proj.tech_stack} onChange={(val) => store.updateProject(proj.id, 'tech_stack', val)} placeholder="Next.js, FastAPI, Groq" />
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-4 mb-4">
+                            <Input label="Live Link" value={proj.live_link} onChange={(val) => store.updateProject(proj.id, 'live_link', val)} placeholder="https://..." icon={<Globe />} />
+                            <Input label="GitHub Link" value={proj.github_link} onChange={(val) => store.updateProject(proj.id, 'github_link', val)} placeholder="https://github..." icon={<GithubLogo />} />
+                        </div>
+                        <label className="block text-xs font-bold text-text-muted uppercase mb-2">Description</label>
+                        <textarea
+                            value={proj.description}
+                            onChange={(e) => store.updateProject(proj.id, 'description', e.target.value)}
+                            className="w-full h-20 p-3 bg-white/5 border border-white/10 rounded-xl text-text-primary outline-none focus:border-brand-info/50 resize-none text-sm"
+                            placeholder="Describe your project..."
+                        />
+                    </div>
+                ))}
+            </div>
+          </Section>
+
+          {/* 7. Certifications */}
+          <Section title="Certifications" icon={<Certificate size={24} />} color="brand-success"
+                   action={<button onClick={store.addCertification} className="p-1.5 bg-brand-success/10 text-brand-success rounded-lg hover:bg-brand-success/20"><Plus weight="bold" /></button>}>
+            <div className="space-y-4">
+                {store.certifications.map((cert) => (
+                    <div key={cert.id} className="relative p-5 bg-white/5 rounded-2xl border border-white/5 group">
+                        <button onClick={() => store.removeCertification(cert.id)} className="absolute -top-2 -right-2 p-1.5 bg-brand-danger/20 text-brand-danger rounded-full opacity-0 group-hover:opacity-100 transition-all"><Trash size={14} /></button>
+                        <div className="grid md:grid-cols-3 gap-4">
+                            <div className="md:col-span-1">
+                                <Input label="Name" value={cert.name} onChange={(val) => store.updateCertification(cert.id, 'name', val)} placeholder="Agentic AI Diploma" />
+                            </div>
+                            <div className="md:col-span-1">
+                                <Input label="Issuer" value={cert.issuer} onChange={(val) => store.updateCertification(cert.id, 'issuer', val)} placeholder="Governor House" />
+                            </div>
+                            <div className="md:col-span-1">
+                                <Input label="Date" value={cert.date} onChange={(val) => store.updateCertification(cert.id, 'date', val)} placeholder="2024" />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+          </Section>
+        </div>
+
+        {/* PREVIEW SIDE */}
+        <div className="sticky top-24 hidden lg:block">
+           <div className="flex justify-between items-center mb-4 px-2">
+             <h3 className="text-xl font-heading font-bold text-white flex items-center gap-2">
+               <DownloadSimple className="text-brand-primary" /> Live Preview
+             </h3>
+             <span className="text-[10px] uppercase tracking-widest text-text-muted bg-white/5 px-2 py-1 rounded border border-white/10">A4 Standard Format</span>
+           </div>
+           <div className="max-h-[85vh] overflow-y-auto pr-2 custom-scrollbar shadow-2xl rounded-xl">
+             <ResumePreview />
+           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Section({ title, icon, children, action, color }: any) {
+    return (
+        <section className="glass-card p-6 border-white/5">
+            <div className="flex justify-between items-center mb-6">
+                <h3 className={`text-xl font-heading font-bold flex items-center gap-3 text-${color}`}>
+                    {icon}
+                    {title}
+                </h3>
+                {action}
+            </div>
+            {children}
+        </section>
+    );
+}
+
+function Input({ label, value, onChange, placeholder, type = "text", icon }: any) {
+    return (
+        <div>
+            <label className="block text-xs font-bold text-text-muted uppercase mb-2 ml-1">{label}</label>
+            <div className="relative">
+                {icon && <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">{icon}</div>}
+                <input
+                    type={type}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    placeholder={placeholder}
+                    className={`w-full p-3 bg-white/5 border border-white/10 rounded-xl text-text-primary outline-none focus:border-brand-primary/50 transition-all text-sm ${icon ? 'pl-10' : ''}`}
+                />
+            </div>
+        </div>
+    );
+}

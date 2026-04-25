@@ -1,0 +1,15 @@
+fpdf2
+fastapi
+uvicorn
+groq
+pdfplumber
+PyMuPDF
+python-multipart
+psycopg2-binary
+python-jose[cryptography]
+passlib[bcrypt]
+bcrypt==4.0.1
+pydantic[email]
+python-dotenv
+asyncpg
+reportlab
