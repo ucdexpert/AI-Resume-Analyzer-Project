@@ -59,55 +59,56 @@ export default function DropZone() {
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6">
       <motion.div
-        {...getRootProps()}
         animate={{
           borderColor: isDragActive ? '#3b82f6' : 'rgba(255, 255, 255, 0.1)',
           scale: isDragActive ? 1.02 : 1,
         }}
-        className={`relative group cursor-pointer glass-card p-12 border-2 border-dashed flex flex-col items-center justify-center transition-all duration-300 ${
+        className={`relative group cursor-pointer glass-card border-2 border-dashed transition-all duration-300 ${
           isDragActive ? 'bg-brand-primary/5' : 'hover:bg-white/5'
         }`}
       >
-        <input {...getInputProps()} />
+        <div {...getRootProps()} className="p-12 flex flex-col items-center justify-center w-full h-full">
+          <input {...getInputProps()} />
 
-        <AnimatePresence mode="wait">
-          {!file ? (
-            <motion.div
-              key="idle"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="text-center"
-            >
-              <div className="mb-4 p-4 rounded-full bg-brand-primary/10 inline-block group-hover:scale-110 transition-transform duration-300">
-                <UploadSimple size={48} weight="duotone" className="text-brand-primary" />
-              </div>
-              <h3 className="text-xl font-heading mb-2">Drag & Drop Resume</h3>
-              <p className="text-text-muted">Support PDF only (Max 5MB)</p>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="selected"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center w-full"
-            >
-              <div className="flex items-center gap-4 p-4 glass-card border-brand-primary/30 w-full">
-                <FilePdf size={40} weight="duotone" className="text-brand-primary" />
-                <div className="flex-grow overflow-hidden">
-                  <p className="font-medium truncate">{file.name}</p>
-                  <p className="text-sm text-text-muted">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+          <AnimatePresence mode="wait">
+            {!file ? (
+              <motion.div
+                key="idle"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="text-center"
+              >
+                <div className="mb-4 p-4 rounded-full bg-brand-primary/10 inline-block group-hover:scale-110 transition-transform duration-300">
+                  <UploadSimple size={48} weight="duotone" className="text-brand-primary" />
                 </div>
-                <button
-                  onClick={removeFile}
-                  className="p-2 hover:bg-white/10 rounded-full transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <h3 className="text-xl font-heading mb-2">Drag & Drop Resume</h3>
+                <p className="text-text-muted">Support PDF only (Max 5MB)</p>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="selected"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex flex-col items-center w-full"
+              >
+                <div className="flex items-center gap-4 p-4 glass-card border-brand-primary/30 w-full">
+                  <FilePdf size={40} weight="duotone" className="text-brand-primary" />
+                  <div className="flex-grow overflow-hidden">
+                    <p className="font-medium truncate">{file.name}</p>
+                    <p className="text-sm text-text-muted">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
+                  <button
+                    onClick={removeFile}
+                    className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {isDragActive && (
           <motion.div
