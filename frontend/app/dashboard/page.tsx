@@ -22,7 +22,11 @@ import MockInterview from '../../components/generators/MockInterview';
 import ResumeRewriter from '../../components/generators/ResumeRewriter';
 import JobMatcher from '../../components/analysis/JobMatcher';
 import { DashboardSkeleton } from '../../components/shared/Skeleton';
-...
+import { 
+  ArrowLeft, Target, FileText, MagicWand, 
+  MicrophoneStage, HandWaving, ChartLine, 
+  ShareNetwork, Clock, WarningCircle, Crown, Printer
+} from '@phosphor-icons/react';
 import { useLanguageStore } from '../../stores/useLanguageStore';
 import { translations } from '../../lib/translations';
 import { getAnalysisHistory, generateAnalysisReport } from '../../lib/api';
