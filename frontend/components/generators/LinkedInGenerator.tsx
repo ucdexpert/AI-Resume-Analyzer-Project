@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { generateLinkedInSummary } from '@/lib/api';
+import { generateLinkedInSummary } from '../../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LinkedinLogo, Copy, Check } from '@phosphor-icons/react';
 

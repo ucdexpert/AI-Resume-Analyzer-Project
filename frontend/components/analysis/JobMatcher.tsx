@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getJobMatches } from '@/lib/api';
+import { getJobMatches } from '../../lib/api';
 import { Briefcase, Target, ChartLineUp, BookOpen, ArrowRight, LinkedinLogo, MagnifyingGlass } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 

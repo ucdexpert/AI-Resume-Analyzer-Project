@@ -4,8 +4,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'next/navigation';
 import { FilePdf, FileDoc, Globe, GithubLogo, Envelope, Phone, MapPin } from '@phosphor-icons/react';
-import useBuilderStore from '@/stores/useBuilderStore';
-import ResumePreview from '@/components/generators/ResumePreview';
+import useBuilderStore from '../../../../stores/useBuilderStore';
+import ResumePreview from '../../../../components/generators/ResumePreview';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 

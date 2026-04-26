@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { evaluateAnswer } from '@/lib/api';
+import React, { useState, useEffect } from 'react';
+import { evaluateAnswer } from '../../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChatCircleDots, Microphone, PaperPlaneTilt, CheckCircle, WarningCircle, Lightbulb } from '@phosphor-icons/react';
 

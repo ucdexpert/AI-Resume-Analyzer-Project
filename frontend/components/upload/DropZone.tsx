@@ -4,10 +4,10 @@ import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UploadSimple, FilePdf, X, CheckCircle, WarningCircle } from '@phosphor-icons/react';
-import { analyzeResume } from '@/lib/api';
-import { useAnalysisStore } from '@/stores/useAnalysisStore';
+import { analyzeResume } from '../../lib/api';
+import { useAnalysisStore } from '../../stores/useAnalysisStore';
 import { useRouter } from 'next/navigation';
-import { useLanguageStore } from '@/stores/useLanguageStore';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 
 export default function DropZone() {
   const [file, setFile] = useState<File | null>(null);

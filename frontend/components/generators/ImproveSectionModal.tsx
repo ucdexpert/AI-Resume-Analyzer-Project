@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { improveSection } from '@/lib/api';
+import { improveSection } from '../../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MagicWand, X, Copy, Check } from '@phosphor-icons/react';
 

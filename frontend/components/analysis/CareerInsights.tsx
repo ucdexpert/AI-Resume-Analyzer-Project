@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { CurrencyDollar, RoadHorizon, Info } from '@phosphor-icons/react';
-import { useLanguageStore } from '@/stores/useLanguageStore';
-import { translations } from '@/lib/translations';
+import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translations } from '../../lib/translations';
 
 interface CareerInsightsProps {
   salary?: { range: string, currency: string, basis: string };

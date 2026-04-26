@@ -1,8 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { login } from '@/lib/api'
-import useAuthStore from '@/stores/useAuthStore'
+import { login } from '../../lib/api'
+import useAuthStore from '../../stores/useAuthStore'
 import Link from 'next/link'
 import { SignIn, Envelope, Lock, Eye, EyeSlash } from '@phosphor-icons/react'
 

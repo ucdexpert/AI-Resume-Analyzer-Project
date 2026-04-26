@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import useBuilderStore from '@/stores/useBuilderStore';
+import useBuilderStore from '../../stores/useBuilderStore';
 import { Globe, GithubLogo, Envelope, Phone, MapPin } from '@phosphor-icons/react';
 
 export default function ResumePreview() {

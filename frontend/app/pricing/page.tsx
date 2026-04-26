@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Check, Sparkle, Crown, Buildings, Rocket } from '@phosphor-icons/react';
-import Navbar from '@/components/shared/Navbar';
+import Navbar from '../../components/shared/Navbar';
 
 const PLANS = [
   {

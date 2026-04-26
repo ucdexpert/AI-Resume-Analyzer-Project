@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import useBuilderStore from '@/stores/useBuilderStore';
+import useBuilderStore from '../../stores/useBuilderStore';
 import { 
   saveBuilderResume, 
   getBuilderResume, 
@@ -10,7 +10,7 @@ import {
   generateBuilderTXT,
   generateAISummary,
   generateBulletPoints
-} from '@/lib/api';
+} from '../../lib/api';
 import { 
   User, Briefcase, GraduationCap, Wrench, 
   DownloadSimple, Plus, Trash, FilePdf, 

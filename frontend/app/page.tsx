@@ -1,10 +1,10 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import DropZone from '@/components/upload/DropZone';
+import DropZone from '../components/upload/DropZone';
 import { Sparkle, Target, Rocket, ChartLineUp, FileText, MagnifyingGlass, Lightbulb } from '@phosphor-icons/react';
-import { useLanguageStore } from '@/stores/useLanguageStore';
-import { translations } from '@/lib/translations';
+import { useLanguageStore } from '../stores/useLanguageStore';
+import { translations } from '../lib/translations';
 
 export default function Home() {
   const { lang } = useLanguageStore();

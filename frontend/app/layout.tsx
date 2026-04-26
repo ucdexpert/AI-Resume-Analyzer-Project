@@ -2,11 +2,12 @@
 
 import { Syne, DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import LanguageToggle from "@/components/shared/LanguageToggle";
-import { useLanguageStore } from "@/stores/useLanguageStore";
+import LanguageToggle from "../components/shared/LanguageToggle";
+import { useLanguageStore } from "../stores/useLanguageStore";
 import { ThemeProvider } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import Navbar from "../components/shared/Navbar";
 
 const syne = Syne({ 
   subsets: ["latin"],
@@ -22,8 +23,6 @@ const jetBrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: '--font-mono',
 });
-
-import Navbar from "@/components/shared/Navbar";
 
 export default function RootLayout({
   children,

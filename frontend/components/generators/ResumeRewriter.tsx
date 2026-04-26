@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { rewriteResume, generateImprovedPDF } from '@/lib/api';
+import { rewriteResume, generateImprovedPDF } from '../../lib/api';
 import { MagicWand, Copy, Check, ArrowsLeftRight, ArrowRight, FilePdf } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 

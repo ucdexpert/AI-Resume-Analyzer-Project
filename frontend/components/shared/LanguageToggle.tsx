@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useLanguageStore } from '@/stores/useLanguageStore';
+import { useLanguageStore } from '../../stores/useLanguageStore';
 import { Globe } from '@phosphor-icons/react';
 
 export default function LanguageToggle() {

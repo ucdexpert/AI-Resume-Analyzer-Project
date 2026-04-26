@@ -1,5 +1,5 @@
 'use client'
-import useAuthStore from '@/stores/useAuthStore'
+import useAuthStore from '../../stores/useAuthStore'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { List, SignOut, User, Layout, FileText, House } from '@phosphor-icons/react'

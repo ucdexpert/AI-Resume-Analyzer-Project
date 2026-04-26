@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { generateCoverLetter } from '@/lib/api';
+import { generateCoverLetter } from '../../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, Copy, Check } from '@phosphor-icons/react';
 
