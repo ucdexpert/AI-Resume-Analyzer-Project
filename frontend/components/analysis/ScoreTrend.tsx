@@ -71,7 +71,7 @@ export default function ScoreTrend({ data }: ScoreTrendProps) {
         </div>
       </div>
 
-      <div className="h-[300px] w-full">
+      <div style={{ width: '100%', height: 300 }}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData}>
             <defs>

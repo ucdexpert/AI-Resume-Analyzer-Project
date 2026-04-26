@@ -5,6 +5,7 @@ import useBuilderStore from '../../stores/useBuilderStore';
 import { 
   saveBuilderResume, 
   getBuilderResume, 
+  shareBuilderResume,
   generateBuilderPDF, 
   generateBuilderDOCX,
   generateBuilderTXT,
