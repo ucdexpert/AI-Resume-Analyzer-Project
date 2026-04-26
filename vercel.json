@@ -1,0 +1,15 @@
+{
+  "build": {
+    "env": {
+      "NODE_VERSION": "20.x"
+    }
+  },
+  "buildCommand": "npm install && npm run build",
+  "outputDirectory": "frontend/.next",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/$1"
+    }
+  ]
+}
