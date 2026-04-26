@@ -1,37 +1,33 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useAnalysisStore } from '@/stores/useAnalysisStore';
-import useAuthStore from '@/stores/useAuthStore';
+import { useAnalysisStore } from '../../stores/useAnalysisStore';
+import useAuthStore from '../../stores/useAuthStore';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import ScoreCard from '@/components/analysis/ScoreCard';
-import StrengthsList from '@/components/analysis/StrengthsList';
-import WeaknessList from '@/components/analysis/WeaknessList';
-import SuggestionCard from '@/components/analysis/SuggestionCard';
-import KeywordMatch from '@/components/analysis/KeywordMatch';
-import ScoreTrend from '@/components/analysis/ScoreTrend';
-import PersonalAnalytics from '@/components/analysis/PersonalAnalytics';
-import AnalysisComparison from '@/components/analysis/AnalysisComparison';
-import CoverLetterGenerator from '@/components/generators/CoverLetterGenerator';
-import LinkedInGenerator from '@/components/generators/LinkedInGenerator';
-import ImproveSectionModal from '@/components/generators/ImproveSectionModal';
-import CareerInsights from '@/components/analysis/CareerInsights';
-import InterviewQuestions from '@/components/analysis/InterviewQuestions';
-import MockInterview from '@/components/generators/MockInterview';
-import ResumeRewriter from '@/components/generators/ResumeRewriter';
-import JobMatcher from '@/components/analysis/JobMatcher';
-import { DashboardSkeleton } from '@/components/shared/Skeleton';
-import { 
-  ArrowLeft, Target, FileText, MagicWand, 
-  MicrophoneStage, HandWaving, ChartLine, 
-  ShareNetwork, Clock, WarningCircle, Crown, Printer
-} from '@phosphor-icons/react';
-import { useLanguageStore } from '@/stores/useLanguageStore';
-import { translations } from '@/lib/translations';
-import { getAnalysisHistory, generateAnalysisReport } from '@/lib/api';
+import ScoreCard from '../../components/analysis/ScoreCard';
+import StrengthsList from '../../components/analysis/StrengthsList';
+import WeaknessList from '../../components/analysis/WeaknessList';
+import SuggestionCard from '../../components/analysis/SuggestionCard';
+import KeywordMatch from '../../components/analysis/KeywordMatch';
+import ScoreTrend from '../../components/analysis/ScoreTrend';
+import PersonalAnalytics from '../../components/analysis/PersonalAnalytics';
+import AnalysisComparison from '../../components/analysis/AnalysisComparison';
+import CoverLetterGenerator from '../../components/generators/CoverLetterGenerator';
+import LinkedInGenerator from '../../components/generators/LinkedInGenerator';
+import ImproveSectionModal from '../../components/generators/ImproveSectionModal';
+import CareerInsights from '../../components/analysis/CareerInsights';
+import InterviewQuestions from '../../components/analysis/InterviewQuestions';
+import MockInterview from '../../components/generators/MockInterview';
+import ResumeRewriter from '../../components/generators/ResumeRewriter';
+import JobMatcher from '../../components/analysis/JobMatcher';
+import { DashboardSkeleton } from '../../components/shared/Skeleton';
+...
+import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translations } from '../../lib/translations';
+import { getAnalysisHistory, generateAnalysisReport } from '../../lib/api';
 
-import AuthGuard from '@/components/auth/AuthGuard';
+import AuthGuard from '../../components/auth/AuthGuard';
 
 export default function Dashboard() {
   return (
