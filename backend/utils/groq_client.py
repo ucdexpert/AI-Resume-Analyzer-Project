@@ -2,6 +2,7 @@ import os
 from groq import Groq
 from dotenv import load_dotenv
 import json
+from fastapi import HTTPException
 
 load_dotenv()
 
@@ -40,14 +41,14 @@ def analyze_resume_with_ai(resume_text: str, job_description: str = None, lang: 
     9. missing_keywords: object with "technical_skills", "soft_skills", "industry_terms" (all arrays of strings)
     10. industry_feedback: string with specific feedback based on the candidate's primary industry
     11. salary_estimate: object with "range" (string), "currency" (string "PKR"), and "basis" (string "Market rates in Pakistan")
-    12. career_path: object with "short_term" (string) and "long_term" (string) - single strings, not arrays
+    12. career_path: object with "short_term" (array of strings) and "long_term" (array of strings)
     13. interview_questions: array of 3 objects, each with properties: "question" (the interview question text), "category" (technical/behavioral/etc.), "suggested_answer" (sample good answer)
     14. match_percentage (integer 0-100, if JD provided)
     15. matched_keywords (array of strings, if JD provided)
     
     IMPORTANT: 
     - Salary must be estimated in PKR (Pakistani Rupee) based on the Pakistan job market.
-    - career_path.short_term and career_path.long_term must be SINGLE strings, not arrays.
+    - career_path.short_term and career_path.long_term must be ARRAYS of strings.
     Ensure the JSON is valid and strictly follows this structure with correct data types.
     """
     
@@ -59,36 +60,61 @@ def analyze_resume_with_ai(resume_text: str, job_description: str = None, lang: 
                     "content": prompt,
                 }
             ],
-            model="llama-3.1-8b-instant",
+            model="llama-3.3-70b-versatile",
             response_format={"type": "json_object"}
         )
         response_data = json.loads(chat_completion.choices[0].message.content)
+
+        # Define allowed keys based on AnalysisResponse model
+        allowed_keys = {
+            'overall_score', 'score_breakdown', 'strengths', 'weaknesses', 'suggestions',
+            'ats_score', 'ats_tips', 'section_checker', 'missing_keywords',
+            'industry_feedback', 'salary_estimate', 'career_path', 'interview_questions',
+            'match_percentage', 'matched_keywords', 'raw_text'
+        }
+
+        # Filter out unexpected top-level keys
+        filtered_response_data = {k: v for k, v in response_data.items() if k in allowed_keys}
+        response_data = filtered_response_data
         
-        # Sanitize list fields to ensure they contain only strings (prevents React "Objects are not valid as a React child" errors)
-        for field in ['strengths', 'weaknesses', 'suggestions', 'ats_tips']:
+        # Sanitize list fields to ensure they contain only strings
+        list_fields = ['strengths', 'weaknesses', 'suggestions', 'ats_tips', 'matched_keywords']
+        for field in list_fields:
             if field in response_data and isinstance(response_data[field], list):
                 sanitized_list = []
                 for item in response_data[field]:
                     if isinstance(item, str):
                         sanitized_list.append(item)
                     elif isinstance(item, dict):
-                        # If AI nested an object (e.g., with keys like "Authentication Approach"), 
-                        # join its values into a single string
                         values = [str(v) for v in item.values() if v]
                         sanitized_list.append(" ".join(values))
                     else:
                         sanitized_list.append(str(item))
                 response_data[field] = sanitized_list
 
+        # Sanitize career_path to ensure fields are lists of strings
+        if 'career_path' in response_data and isinstance(response_data['career_path'], dict):
+            cp = response_data['career_path']
+            for path_type in ['short_term', 'long_term']:
+                if path_type in cp:
+                    if isinstance(cp[path_type], str):
+                        cp[path_type] = [cp[path_type]]
+                    elif isinstance(cp[path_type], list):
+                        cp[path_type] = [str(i) for i in cp[path_type]]
+                    else:
+                        cp[path_type] = [str(cp[path_type])]
+                else:
+                    cp[path_type] = []
+        else:
+            response_data['career_path'] = {"short_term": [], "long_term": []}
+
         # Post-process interview questions to ensure correct format
         if 'interview_questions' in response_data and response_data['interview_questions']:
             fixed_questions = []
             for q in response_data['interview_questions']:
                 if isinstance(q, dict):
-                    # Fix property name if AI used 'text' instead of 'question'
                     if 'text' in q and 'question' not in q:
                         q['question'] = q.pop('text')
-                    # Ensure all required fields exist
                     if 'question' not in q:
                         q['question'] = 'Sample interview question'
                     if 'category' not in q:
@@ -96,12 +122,17 @@ def analyze_resume_with_ai(resume_text: str, job_description: str = None, lang: 
                     if 'suggested_answer' not in q:
                         q['suggested_answer'] = 'Please provide a thoughtful answer based on your experience.'
                     fixed_questions.append(q)
-            response_data['interview_questions'] = fixed_questions[:3]  # Limit to 3 questions
+            response_data['interview_questions'] = fixed_questions[:3]
         
         return response_data
     except Exception as e:
-        print(f"Error calling Groq API: {e}")
-        return None
+        if "429" in str(e) or "rate_limit" in str(e):
+            raise HTTPException(
+                status_code=429,
+                detail="AI service is busy. Please try again in a few minutes."
+            )
+        print(f"Error calling Groq API for analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 def generate_cover_letter(resume_text: str, job_title: str, company_name: str):
     """
@@ -130,21 +161,18 @@ def generate_cover_letter(resume_text: str, job_title: str, company_name: str):
     try:
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
-            model="llama-3.1-8b-instant",
+            model="llama-3.3-70b-versatile",
             response_format={"type": "json_object"}
         )
         response_data = json.loads(chat_completion.choices[0].message.content)
         
-        # Sanitize to ensure cover_letter is a string
         if 'cover_letter' in response_data:
             ls = response_data['cover_letter']
             if isinstance(ls, dict):
-                # Try to find a single string that looks like a letter
                 text = ls.get('cover_letter') or ls.get('text') or ls.get('content') or ls.get('letter') or ls.get('body')
                 if text and isinstance(text, str) and len(text) > 50:
                     response_data['cover_letter'] = text
                 else:
-                    # If it's a structured object (date, greeting, body, etc.), merge it
                     parts = []
                     for key in ['date', 'recipient', 'subject', 'greeting', 'introduction', 'body', 'conclusion', 'closing', 'signature']:
                         val = ls.get(key)
@@ -154,15 +182,19 @@ def generate_cover_letter(resume_text: str, job_title: str, company_name: str):
                     if parts:
                         response_data['cover_letter'] = "\n\n".join(parts)
                     else:
-                        # Final fallback: just join all string values
                         response_data['cover_letter'] = "\n\n".join([str(v) for v in ls.values() if v])
             elif isinstance(ls, list):
                 response_data['cover_letter'] = "\n".join([str(i) for i in ls])
         
         return response_data
     except Exception as e:
+        if "429" in str(e) or "rate_limit" in str(e):
+            raise HTTPException(
+                status_code=429,
+                detail="AI service is busy. Please try again in a few minutes."
+            )
         print(f"Error calling Groq for cover letter: {e}")
-        return None
+        raise HTTPException(status_code=500, detail=str(e))
 
 def generate_linkedin_summary(resume_text: str):
     """
@@ -180,12 +212,11 @@ def generate_linkedin_summary(resume_text: str):
     try:
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
-            model="llama-3.1-8b-instant",
+            model="llama-3.3-70b-versatile",
             response_format={"type": "json_object"}
         )
         response_data = json.loads(chat_completion.choices[0].message.content)
         
-        # Sanitize to ensure linkedin_summary is a string
         if 'linkedin_summary' in response_data:
             if isinstance(response_data['linkedin_summary'], dict):
                 ls = response_data['linkedin_summary']
@@ -193,7 +224,6 @@ def generate_linkedin_summary(resume_text: str):
                 if text and isinstance(text, str):
                     response_data['linkedin_summary'] = text
                 else:
-                    # Get the first string value found in the dict
                     for v in ls.values():
                         if isinstance(v, str) and len(v) > 50:
                             response_data['linkedin_summary'] = v
@@ -203,8 +233,13 @@ def generate_linkedin_summary(resume_text: str):
         
         return response_data
     except Exception as e:
+        if "429" in str(e) or "rate_limit" in str(e):
+            raise HTTPException(
+                status_code=429,
+                detail="AI service is busy. Please try again in a few minutes."
+            )
         print(f"Error calling Groq for LinkedIn summary: {e}")
-        return None
+        raise HTTPException(status_code=500, detail=str(e))
 
 def improve_resume_section(section_text: str, section_name: str):
     """
@@ -223,13 +258,18 @@ def improve_resume_section(section_text: str, section_name: str):
     try:
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
-            model="llama-3.1-8b-instant",
+            model="llama-3.3-70b-versatile",
             response_format={"type": "json_object"}
         )
         return json.loads(chat_completion.choices[0].message.content)
     except Exception as e:
+        if "429" in str(e) or "rate_limit" in str(e):
+            raise HTTPException(
+                status_code=429,
+                detail="AI service is busy. Please try again in a few minutes."
+            )
         print(f"Error calling Groq for section improvement: {e}")
-        return None
+        raise HTTPException(status_code=500, detail=str(e))
 
 def get_interview_feedback(question: str, user_answer: str, resume_text: str):
     """
@@ -254,12 +294,11 @@ def get_interview_feedback(question: str, user_answer: str, resume_text: str):
     try:
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
-            model="llama-3.1-8b-instant",
+            model="llama-3.3-70b-versatile",
             response_format={"type": "json_object"}
         )
         response_data = json.loads(chat_completion.choices[0].message.content)
         
-        # Sanitize output
         if 'score' in response_data:
             try:
                 response_data['score'] = int(response_data['score'])
@@ -281,5 +320,160 @@ def get_interview_feedback(question: str, user_answer: str, resume_text: str):
                 
         return response_data
     except Exception as e:
+        if "429" in str(e) or "rate_limit" in str(e):
+            raise HTTPException(
+                status_code=429,
+                detail="AI service is busy. Please try again in a few minutes."
+            )
         print(f"Error evaluating answer: {e}")
-        return None
+        raise HTTPException(status_code=500, detail=str(e))
+
+def generate_bullet_points(job_title: str, company: str, current_description: str = ""):
+    """
+    Generates 5 powerful, metric-driven bullet points for a job role.
+    """
+    prompt = f"""
+    You are an expert resume writer. Generate 5 powerful, impact-oriented bullet points for the following job role.
+    Use strong action verbs and include metrics/quantifiable results where possible.
+    
+    Job Title: {job_title}
+    Company: {company}
+    {f"Current Description to improve: {current_description}" if current_description else ""}
+    
+    Return as JSON with a "bullet_points" field containing an array of 5 strings.
+    """
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama-3.3-70b-versatile",
+            response_format={"type": "json_object"}
+        )
+        return json.loads(chat_completion.choices[0].message.content)
+    except Exception as e:
+        if "429" in str(e) or "rate_limit" in str(e):
+            raise HTTPException(
+                status_code=429,
+                detail="AI service is busy. Please try again in a few minutes."
+            )
+        print(f"Error generating bullet points: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+def rewrite_resume(resume_text: str, style: str):
+    """
+    Rewrites the entire resume based on a selected style.
+    Styles: Professional, Creative, Technical, Executive
+    """
+    prompt = f"""
+    You are a master resume rewriter. 
+    Rewrite ONLY the following resume using 
+    the "{style}" style. Do NOT invent any 
+    new information. Keep all facts, 
+    companies, dates, and skills exactly 
+    as provided. Only improve the language 
+    and formatting.
+    
+    ORIGINAL RESUME TO REWRITE:
+    {resume_text}
+    
+    Format with clear sections:
+    ## SECTION NAME
+    Content here
+    
+    RULES:
+    - Keep ALL original information accurate
+    - Do NOT add fake experience or skills
+    - Do NOT change names, dates, companies
+    - Maximum 500 words
+    - Return ONLY the rewritten resume text
+    - No explanations, no JSON
+    """
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama-3.3-70b-versatile",
+        )
+        return {"rewritten_text": chat_completion.choices[0].message.content}
+    except Exception as e:
+        if "429" in str(e) or "rate_limit" in str(e):
+            raise HTTPException(
+                status_code=429,
+                detail="AI service is busy. Please try again in a few minutes."
+            )
+        print(f"Error rewriting resume: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+def match_resume_to_jd(resume_text: str, job_description: str):
+    """
+    Specifically compares a resume against a job description for match percentage and gap analysis.
+    """
+    prompt = f"""
+    You are an expert technical recruiter. Compare the following resume against the job description.
+    
+    Resume:
+    {resume_text}
+    
+    Job Description:
+    {job_description}
+    
+    Provide a detailed match analysis in JSON format:
+    1. "match_percentage": (integer 0-100)
+    2. "fit_level": (string "Ready", "Potential", or "Not a Match")
+    3. "missing_skills": (list of strings)
+    4. "matched_skills": (list of strings)
+    5. "recommendations": (list of 3 specific strings)
+    6. "application_advice": (string containing an "Apply" or "Don't Apply" recommendation with reason)
+    
+    Ensure valid JSON.
+    """
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama-3.3-70b-versatile",
+            response_format={"type": "json_object"}
+        )
+        return json.loads(chat_completion.choices[0].message.content)
+    except Exception as e:
+        if "429" in str(e) or "rate_limit" in str(e):
+            raise HTTPException(
+                status_code=429,
+                detail="AI service is busy. Please try again in a few minutes."
+            )
+        print(f"Error matching job: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+def match_resume_to_jobs(resume_text: str):
+    """
+    Analyzes resume and suggests top 10 matching job roles with skills gap analysis.
+    """
+    prompt = f"""
+    You are a career growth advisor. Analyze the following resume and suggest the top 10 matching job roles.
+    For each role, provide a skills gap analysis.
+    
+    Resume:
+    {resume_text}
+    
+    Return as JSON with a "job_matches" field containing an array of 10 objects:
+    - role_title (string)
+    - match_score (0-100)
+    - why_match (1 sentence)
+    - key_gaps (list of 3 skills to learn)
+    
+    Ensure valid JSON.
+    """
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama-3.3-70b-versatile",
+            response_format={"type": "json_object"}
+        )
+        return json.loads(chat_completion.choices[0].message.content)
+    except Exception as e:
+        if "429" in str(e) or "rate_limit" in str(e):
+            raise HTTPException(
+                status_code=429,
+                detail="AI service is busy. Please try again in a few minutes."
+            )
+        print(f"Error matching jobs: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+

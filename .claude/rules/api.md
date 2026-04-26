@@ -2,7 +2,7 @@
 
 ## 🛠 Tech Stack
 - **Framework:** FastAPI (Python)
-- **AI/LLM:** Groq API (using `llama3-70b`) for analysis and text generation.
+- **AI/LLM:** Groq API (using `llama-3.3-70b-versatile`) for analysis and text generation.
 - **PDF Processing:** `pdfplumber` or `PyMuPDF` (fitz) for high-accuracy text extraction.
 - **Authentication:** JWT (JSON Web Tokens) with `python-jose` and `passlib`.
 - **Environment:** `.env` for `GROQ_API_KEY` and `DATABASE_URL`.

@@ -39,7 +39,7 @@ An advanced, full-stack application designed to help job seekers optimize their 
 **Backend:**
 - **Framework:** FastAPI (Python)
 - **Database:** PostgreSQL (NeonDB) with `asyncpg`
-- **AI Engine:** Groq Cloud API (Llama 3.1 8B Instant)
+- **AI Engine:** Groq Cloud API (Llama 3.3 70B Versatile)
 - **PDF Engines:** ReportLab & FPDF2
 
 ---

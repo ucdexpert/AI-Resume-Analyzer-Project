@@ -41,3 +41,5 @@ class ResumeBuilderRequest(BaseModel):
     skills: Optional[List[str]] = []
     projects: Optional[List[ProjectItem]] = []
     certifications: Optional[List[CertificationItem]] = []
+    template_id: Optional[str] = "modern"
+    theme_color: Optional[str] = "#00E5FF"

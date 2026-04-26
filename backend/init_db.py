@@ -20,6 +20,7 @@ async def init_db():
                 name        VARCHAR(100) NOT NULL,
                 email       VARCHAR(255) UNIQUE NOT NULL,
                 password    VARCHAR(255) NOT NULL,
+                analysis_count INTEGER DEFAULT 0,
                 created_at  TIMESTAMP DEFAULT NOW(),
                 updated_at  TIMESTAMP DEFAULT NOW()
             );
@@ -43,11 +44,17 @@ async def init_db():
                 user_id          UUID REFERENCES users(id) ON DELETE CASCADE,
                 resume_id        UUID REFERENCES resumes(id) ON DELETE CASCADE,
                 overall_score    INTEGER,
+                score_breakdown  JSONB,
                 ats_score        INTEGER,
+                ats_tips         JSONB,
                 strengths        JSONB,
                 weaknesses       JSONB,
                 suggestions      JSONB,
                 missing_keywords JSONB,
+                industry_feedback TEXT,
+                salary_estimate  JSONB,
+                career_path      JSONB,
+                interview_questions JSONB,
                 created_at       TIMESTAMP DEFAULT NOW()
             );
         """)
@@ -75,6 +82,9 @@ async def init_db():
                 skills        JSONB,   -- array of skill strings
                 projects      JSONB,   -- array of project objects
                 certifications JSONB,  -- array of certification objects
+                template_id   VARCHAR(50) DEFAULT 'modern',
+                theme_color   VARCHAR(20) DEFAULT '#00E5FF',
+                public_id     UUID UNIQUE DEFAULT gen_random_uuid(),
 
                 created_at    TIMESTAMP DEFAULT NOW(),
                 updated_at    TIMESTAMP DEFAULT NOW()

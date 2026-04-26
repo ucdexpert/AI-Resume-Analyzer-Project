@@ -51,7 +51,10 @@ export default function ImproveSectionModal({ isOpen, onClose }: { isOpen: boole
               <select 
                 value={sectionName}
                 onChange={(e) => setSectionName(e.target.value)}
-                className="w-full p-3 bg-white/5 border border-white/10 rounded-lg text-text-primary outline-none"
+                className="w-full bg-[#1a1a2e] text-white border 
+  border-white/20 rounded-lg px-4 py-3 outline-none 
+  cursor-pointer focus:border-brand-primary"
+  style={{ colorScheme: 'dark' }}
               >
                 <option>Professional Summary</option>
                 <option>Work Experience</option>

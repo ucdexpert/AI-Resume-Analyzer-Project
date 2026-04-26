@@ -23,8 +23,8 @@ class SalaryEstimate(BaseModel):
     basis: str
 
 class CareerPath(BaseModel):
-    short_term: str
-    long_term: str
+    short_term: List[str]
+    long_term: List[str]
 
 class InterviewQuestion(BaseModel):
     question: str

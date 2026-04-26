@@ -41,6 +41,11 @@ interface BuilderState {
   portfolio: string
   summary: string
 
+  // Design
+  template_id: string
+  theme_color: string
+  public_id: string | null
+
   // Arrays
   experience: Experience[]
   education: Education[]
@@ -71,6 +76,9 @@ interface BuilderState {
 const initialState = {
     full_name: '', email: '', phone: '',
     location: '', linkedin: '', portfolio: '', summary: '',
+    template_id: 'modern',
+    theme_color: '#00E5FF',
+    public_id: null,
     experience: [{ id: '1', job_title: '', company: '', dates: '', description: '' }],
     education: [{ id: '1', degree: '', school: '', dates: '' }],
     skills: [],
@@ -108,12 +116,12 @@ const useBuilderStore = create<BuilderState>((set) => ({
   })),
 
   removeEducation: (id) => set((state) => ({
-    education: state.education.filter(e => e.id !== id)
+    education: state.education.filter(edu => edu.id !== id)
   })),
 
   updateEducation: (id, field, value) => set((state) => ({
-    education: state.education.map(e =>
-      e.id === id ? { ...e, [field]: value } : e
+    education: state.education.map(edu =>
+      edu.id === id ? { ...edu, [field]: value } : edu
     )
   })),
 

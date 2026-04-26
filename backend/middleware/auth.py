@@ -19,10 +19,15 @@ async def get_current_user(
 
     # 3. Get user from database
     user = await db.fetchrow(
-        "SELECT id, name, email FROM users WHERE id = $1",
+        "SELECT * FROM users WHERE id = $1",
         payload["sub"]
     )
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
 
-    return user
+    user_dict = dict(user)
+    # Ensure analysis_count exists for downstream logic
+    if "analysis_count" not in user_dict:
+        user_dict["analysis_count"] = 0
+        
+    return user_dict

@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { List, SignOut, User, Layout, FileText, House } from '@phosphor-icons/react'
 import { useState, useEffect } from 'react'
+import ThemeToggle from './ThemeToggle'
+import LanguageToggle from './LanguageToggle'
 
 export default function Navbar() {
   const { user, isLoggedIn, logout } = useAuthStore()
@@ -45,9 +47,14 @@ export default function Navbar() {
                   <FileText size={20} />
                   Builder
                 </Link>
+                <Link href="/pricing" className="text-text-muted hover:text-white transition-colors flex items-center gap-2">
+                  Pricing
+                </Link>
               </div>
               <div className="h-6 w-px bg-white/10 mx-2" />
               <div className="flex items-center gap-4">
+                <LanguageToggle />
+                <ThemeToggle />
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/10">
                   <div className="w-6 h-6 bg-brand-primary/20 rounded-full flex items-center justify-center">
                     <User size={14} className="text-brand-primary" />
@@ -65,6 +72,11 @@ export default function Navbar() {
             </>
           ) : (
             <div className="flex items-center gap-4">
+              <Link href="/pricing" className="text-text-muted hover:text-white transition-colors px-4">
+                Pricing
+              </Link>
+              <LanguageToggle />
+              <ThemeToggle />
               <Link href="/login" className="text-text-muted hover:text-white transition-colors px-4 py-2">
                 Login
               </Link>
@@ -76,9 +88,13 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Toggle */}
-        <button className="md:hidden text-white" onClick={() => setIsOpen(!isOpen)}>
-          <List size={28} />
-        </button>
+        <div className="md:hidden flex items-center gap-4">
+            <LanguageToggle />
+            <ThemeToggle />
+            <button className="text-white" onClick={() => setIsOpen(!isOpen)}>
+                <List size={28} />
+            </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
@@ -92,14 +108,18 @@ export default function Navbar() {
               <Link href="/builder" onClick={() => setIsOpen(false)} className="text-lg text-text-primary flex items-center gap-3">
                 <FileText size={24} /> Builder
               </Link>
-              <button onClick={handleLogout} className="text-lg text-brand-danger flex items-center gap-3">
+              <Link href="/pricing" onClick={() => setIsOpen(false)} className="text-lg text-text-primary flex items-center gap-3">
+                Pricing
+              </Link>
+              <button onClick={handleLogout} className="text-lg text-brand-danger flex items-center gap-3 border-t border-white/5 pt-4">
                 <SignOut size={24} /> Logout
               </button>
             </>
           ) : (
             <>
+              <Link href="/pricing" onClick={() => setIsOpen(false)} className="text-lg text-text-primary">Pricing</Link>
               <Link href="/login" onClick={() => setIsOpen(false)} className="text-lg text-text-primary">Login</Link>
-              <Link href="/signup" onClick={() => setIsOpen(false)} className="bg-brand-primary text-white px-6 py-3 rounded-xl font-semibold text-center">Sign Up</Link>
+              <Link href="/signup" onClick={() => setIsOpen(false)} className="bg-brand-primary text-white px-6 py-3 rounded-xl font-semibold text-center text-lg">Sign Up</Link>
             </>
           )}
         </div>

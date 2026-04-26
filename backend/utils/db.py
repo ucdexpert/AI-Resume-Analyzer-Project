@@ -12,7 +12,7 @@ class Database:
 
     async def connect(self):
         if not self.pool:
-            self.pool = await asyncpg.create_pool(DATABASE_URL)
+            self.pool = await asyncpg.create_pool(DATABASE_URL, statement_cache_size=0)
 
     async def disconnect(self):
         if self.pool:
