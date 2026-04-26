@@ -1,13 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  /* Allow the build to succeed even if there are lint errors */
+  reactStrictMode: false,
   eslint: {
     ignoreDuringBuilds: true,
   },
-  /* Allow the build to succeed even if there are type errors */
   typescript: {
     ignoreBuildErrors: true,
+  },
+  // Ensure that path aliases resolve correctly
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname),
+    };
+    return config;
   },
 };
 
