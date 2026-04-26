@@ -274,4 +274,13 @@ export const generateAnalysisReport = async (analysisData: any) => {
   }
 };
 
+export const shareBuilderResume = async () => {
+  try {
+    const response = await api.post('/builder/share');
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.detail || 'Failed to share resume');
+  }
+};
+
 export default api;

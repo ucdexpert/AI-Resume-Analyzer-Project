@@ -95,17 +95,14 @@ export default function ResumeBuilder() {
   };
 
   const handleSharePublic = async () => {
-    if (!store.public_id) {
-        alert("Please save your resume first to generate a link.");
-        return;
-    }
     setIsSharing(true);
-    const shareUrl = `${window.location.origin}/share/resume/${store.public_id}`;
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      const { share_url } = await shareBuilderResume();
+      await navigator.clipboard.writeText(share_url);
       alert('Public resume link copied to clipboard!');
     } catch (err) {
-      console.error('Failed to copy!', err);
+      console.error('Failed to share!', err);
+      alert("Failed to generate share link. Please save your resume first.");
     }
     setTimeout(() => setIsSharing(false), 2000);
   };
