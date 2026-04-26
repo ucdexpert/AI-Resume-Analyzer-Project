@@ -28,7 +28,8 @@ export default function SignupPage() {
       const res = await signup(signupData)
       setLogin(res.access_token, {
         name: res.user_name,
-        email: res.user_email
+        email: res.user_email,
+        analysis_count: 0
       })
       router.push('/dashboard')
     } catch (err: any) {

@@ -112,7 +112,7 @@ function WelcomeBanner({
 
 function DashboardContent() {
   const { result } = useAnalysisStore();
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
   const { lang } = useLanguageStore();
   const t = translations[lang];
   const router = useRouter();
@@ -144,8 +144,8 @@ function DashboardContent() {
 
   const handleShare = async () => {
     setIsSharing(true);
-    // Assuming a token is available in the user object for sharing. If not, this needs adjustment.
-    const shareToken = user?.token; // Placeholder: replace with actual token or share mechanism
+    // Use the authentication token from store for sharing.
+    const shareToken = token; 
     if (!shareToken) {
       alert('Authentication token not available for sharing.');
       setIsSharing(false);
@@ -269,7 +269,7 @@ function DashboardContent() {
             exit={{ opacity: 0, y: -20 }}
           >
             {/* Score History Graph */}
-            {history.length > 1 && <ScoreTrend data={history} />}
+            {history.length >= 1 && <ScoreTrend data={history} />}
 
             {/* Level 5: Personal Analytics */}
             <PersonalAnalytics history={history} />
@@ -304,7 +304,7 @@ function DashboardContent() {
             </div>
 
             {/* Analysis Comparison */}
-            {history.length > 1 && <AnalysisComparison history={history} />}
+            {history.length >= 1 && <AnalysisComparison history={history} />}
 
             {/* Level 3.4: AI Job Matcher */}
             <JobMatcher resumeText={result.raw_text} />

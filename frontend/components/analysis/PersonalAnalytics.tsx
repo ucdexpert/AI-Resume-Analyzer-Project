@@ -105,14 +105,17 @@ export default function PersonalAnalytics({ history }: AnalyticsProps) {
         </h4>
         <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={benchmarks} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                <BarChart data={benchmarks} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                     <XAxis 
-                        dataKey="category" 
-                        stroke="rgba(255,255,255,0.3)" 
-                        fontSize={12} 
-                        tickLine={false} 
+                        dataKey="category"
+                        tick={{ fill: '#94a3b8', fontSize: 10 }}
+                        tickLine={false}
                         axisLine={false}
+                        interval={0}
+                        angle={-15}
+                        textAnchor="end"
+                        height={40}
                     />
                     <YAxis hide />
                     <Tooltip 

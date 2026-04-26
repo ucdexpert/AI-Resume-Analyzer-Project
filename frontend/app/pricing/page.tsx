@@ -142,7 +142,7 @@ export default function PricingPage() {
                 <Sparkle size={16} className="text-brand-warning" weight="fill" />
                 <span className="text-xs font-bold text-text-muted uppercase tracking-widest">Trusted by 10,000+ Job Seekers</span>
             </div>
-            <div className="flex flex-wrap justify-center gap-12 opacity-30 grayscale invert">
+            <div className="flex flex-wrap justify-center gap-12 opacity-40 grayscale">
                 {/* Simulated Partner Logos */}
                 <div className="text-2xl font-black italic">LINKEDIN</div>
                 <div className="text-2xl font-black italic">INDEED</div>

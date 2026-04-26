@@ -22,7 +22,8 @@ export default function LoginPage() {
       const res = await login(form)
       setLogin(res.access_token, {
         name: res.user_name,
-        email: res.user_email
+        email: res.user_email,
+        analysis_count: res.analysis_count || 0
       })
       router.push('/dashboard')
     } catch (err: any) {

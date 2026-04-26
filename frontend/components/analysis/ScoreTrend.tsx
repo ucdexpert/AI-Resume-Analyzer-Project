@@ -53,7 +53,7 @@ export default function ScoreTrend({ data }: ScoreTrendProps) {
       score: item.overall_score
     }));
 
-  if (chartData.length < 2) return null;
+  if (chartData.length < 1) return null;
 
   return (
     <motion.div 
@@ -86,11 +86,12 @@ export default function ScoreTrend({ data }: ScoreTrendProps) {
               hide={true}
             />
             <YAxis 
-              domain={[0, 100]} 
-              stroke="rgba(255,255,255,0.3)"
-              fontSize={12}
+              domain={[0, 100]}
+              ticks={[0, 25, 50, 75, 100]}
+              tick={{ fill: '#94a3b8', fontSize: 11 }}
               tickLine={false}
               axisLine={false}
+              width={35}
             />
             <Tooltip content={<CustomTooltip />} />
             <Area 
@@ -101,10 +102,18 @@ export default function ScoreTrend({ data }: ScoreTrendProps) {
               fillOpacity={1} 
               fill="url(#colorScore)" 
               animationDuration={1500}
+              dot={{ fill: '#00E5FF', r: 6 }}
+              activeDot={{ r: 8 }}
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
+
+      {chartData.length === 1 && (
+        <p className="text-center text-text-muted text-sm mt-4">
+          Upload more resumes to see your progress trend!
+        </p>
+      )}
     </motion.div>
   );
 }
