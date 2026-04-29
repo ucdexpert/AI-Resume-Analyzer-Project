@@ -4,8 +4,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'next/navigation';
 import { FilePdf, FileDoc, Globe, GithubLogo, Envelope, Phone, MapPin } from '@phosphor-icons/react';
-import useBuilderStore from '../../../../stores/useBuilderStore';
-import ResumePreview from '../../../../components/generators/ResumePreview';
+import useBuilderStore from '@/stores/useBuilderStore';
+import ResumePreview from '@/components/generators/ResumePreview';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
@@ -34,7 +34,7 @@ export default function PublicResumePage() {
 
   if (loading) {
     return (
-        <div className="min-h-screen bg-bg-dark flex flex-col items-center justify-center p-6">
+        <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center p-6">
             <div className="w-16 h-16 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin mb-4"></div>
             <p className="text-text-muted animate-pulse font-bold tracking-widest uppercase text-xs">Loading Resume...</p>
         </div>
@@ -43,7 +43,7 @@ export default function PublicResumePage() {
 
   if (!data) {
     return (
-        <div className="min-h-screen bg-bg-dark flex flex-col items-center justify-center p-6 text-center">
+        <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center p-6 text-center">
             <h1 className="text-4xl font-black text-white mb-4">404</h1>
             <p className="text-text-muted">This resume link is invalid or has been removed.</p>
         </div>

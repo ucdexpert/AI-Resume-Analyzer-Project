@@ -286,7 +286,7 @@ async def share_resume(
         )
         
         return {
-            "share_url": f"{frontend_url}/share/resume/{share_uuid}"
+            "share_url": f"{frontend_url}/shared/resume/{share_uuid}"
         }
     except HTTPException:
         raise

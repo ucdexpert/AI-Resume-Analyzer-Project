@@ -36,7 +36,7 @@ export default function SharedAnalysisPage() {
 
   if (loading) {
     return (
-        <div className="min-h-screen bg-bg-dark flex flex-col items-center justify-center p-6">
+        <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center p-6">
             <div className="w-16 h-16 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin mb-4"></div>
             <p className="text-text-muted animate-pulse font-bold tracking-widest uppercase text-xs">Loading Analysis...</p>
         </div>
@@ -45,7 +45,7 @@ export default function SharedAnalysisPage() {
 
   if (!result) {
     return (
-        <div className="min-h-screen bg-bg-dark flex flex-col items-center justify-center p-6 text-center">
+        <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center p-6 text-center">
             <h1 className="text-4xl font-black text-white mb-4">404</h1>
             <p className="text-text-muted">This analysis link is invalid or has expired.</p>
         </div>
