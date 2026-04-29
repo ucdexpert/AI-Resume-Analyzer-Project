@@ -4,12 +4,12 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import ScoreCard from '../../../components/analysis/ScoreCard';
-import StrengthsList from '../../../components/analysis/StrengthsList';
-import WeaknessList from '../../../components/analysis/WeaknessList';
-import SuggestionCard from '../../../components/analysis/SuggestionCard';
-import KeywordMatch from '../../../components/analysis/KeywordMatch';
-import CareerInsights from '../../../components/analysis/CareerInsights';
+import ScoreCard from '@/components/analysis/ScoreCard';
+import StrengthsList from '@/components/analysis/StrengthsList';
+import WeaknessList from '@/components/analysis/WeaknessList';
+import SuggestionCard from '@/components/analysis/SuggestionCard';
+import KeywordMatch from '@/components/analysis/KeywordMatch';
+import CareerInsights from '@/components/analysis/CareerInsights';
 import { Globe, FileText, Target } from '@phosphor-icons/react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
