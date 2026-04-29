@@ -7,26 +7,27 @@ import { Globe } from '@phosphor-icons/react';
 export default function LanguageToggle() {
   const { lang, setLanguage } = useLanguageStore();
 
+  const languages = [
+    { code: 'en', label: 'EN' },
+    { code: 'ur', label: 'اردو' },
+    { code: 'ar', label: 'ع' }
+  ];
+
   return (
-    <div className="flex items-center gap-2 p-1 glass-card border-white/5">
-      <button
-        onClick={() => setLanguage('en')}
-        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${lang === 'en' ? 'bg-brand-primary text-white' : 'text-text-muted hover:text-white'}`}
-      >
-        EN
-      </button>
-      <button
-        onClick={() => setLanguage('ur')}
-        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${lang === 'ur' ? 'bg-brand-primary text-white' : 'text-text-muted hover:text-white'}`}
-      >
-        اردو
-      </button>
-      <button
-        onClick={() => setLanguage('ar')}
-        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${lang === 'ar' ? 'bg-brand-primary text-white' : 'text-text-muted hover:text-white'}`}
-      >
-        العربية
-      </button>
+    <div className="flex items-center bg-white/5 rounded-lg p-0.5 border border-white/5">
+      {languages.map((l) => (
+        <button
+          key={l.code}
+          onClick={() => setLanguage(l.code as any)}
+          className={`px-1.5 py-0.5 text-[10px] md:px-3 md:py-1 md:text-xs rounded-md font-bold transition-all ${
+            lang === l.code 
+              ? 'bg-brand-primary text-black' 
+              : 'text-text-muted hover:text-white'
+          }`}
+        >
+          {l.label}
+        </button>
+      ))}
     </div>
   );
 }

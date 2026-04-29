@@ -27,7 +27,7 @@ export default function ScoreCard({ score, label, size = 'sm', description }: Sc
       initial={{ opacity: 0, scale: 0.9 }}
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
-      className={`glass-card p-6 flex flex-col items-center justify-center text-center ${
+      className={`glass-card p-6 flex flex-col items-center justify-center text-center scale-90 md:scale-100 ${
         size === 'lg' ? 'md:p-10' : ''
       }`}
     >

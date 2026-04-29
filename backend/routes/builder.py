@@ -249,3 +249,50 @@ async def delete_resume(
     user_id = current_user["id"]
     await db.execute("DELETE FROM resume_builder WHERE user_id = $1", user_id)
     return {"message": "Resume deleted successfully"}
+
+@router.post("/share")
+async def share_resume(
+    current_user=Depends(get_current_user),
+    db=Depends(get_db)
+):
+    try:
+        import uuid
+        
+        # Generate proper UUID
+        share_uuid = str(uuid.uuid4())
+        
+        # Check if resume exists
+        existing = await db.fetchrow(
+            "SELECT id FROM resume_builder WHERE user_id = $1",
+            current_user["id"]
+        )
+        
+        if not existing:
+            raise HTTPException(
+                status_code=404,
+                detail="Please save your resume first"
+            )
+        
+        # Store UUID in public_id column
+        await db.execute("""
+            UPDATE resume_builder 
+            SET public_id = $1::uuid
+            WHERE user_id = $2
+        """, share_uuid, current_user["id"])
+        
+        frontend_url = os.getenv(
+            "FRONTEND_URL",
+            "https://ai-resume-analyzer-pk.vercel.app"
+        )
+        
+        return {
+            "share_url": f"{frontend_url}/share/resume/{share_uuid}"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Share error: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=str(e)
+        )

@@ -42,6 +42,7 @@ const THEME_COLORS = [
 
 export default function ResumeBuilder() {
   const store = useBuilderStore();
+  const [mobileView, setMobileView] = useState<'edit' | 'preview'>('edit');
   const [loading, setLoading] = useState(false);
   const [docLoading, setDocLoading] = useState(false);
   const [txtLoading, setTxtLoading] = useState(false);
@@ -205,6 +206,32 @@ export default function ResumeBuilder() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Mobile Tab Switcher - show only on mobile */}
+      <div className="flex lg:hidden mb-6 bg-white/5 rounded-xl p-1 border border-white/10">
+        <button
+          onClick={() => setMobileView('edit')}
+          className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+            mobileView === 'edit' 
+              ? 'bg-brand-primary text-black shadow-lg shadow-brand-primary/20' 
+              : 'text-text-muted hover:text-white'
+          }`}
+        >
+          <PaintBrush size={18} />
+          Edit
+        </button>
+        <button
+          onClick={() => setMobileView('preview')}
+          className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+            mobileView === 'preview' 
+              ? 'bg-brand-primary text-black shadow-lg shadow-brand-primary/20' 
+              : 'text-text-muted hover:text-white'
+          }`}
+        >
+          <Selection size={18} />
+          Preview
+        </button>
+      </div>
+
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
         <div>
           <h1 className="text-4xl font-heading font-bold text-white mb-2">Resume Builder</h1>
@@ -248,7 +275,7 @@ export default function ResumeBuilder() {
 
       <div className="grid lg:grid-cols-2 gap-8 items-start">
         {/* FORM SIDE */}
-        <div className="space-y-8 max-h-[85vh] overflow-y-auto pr-2 custom-scrollbar">
+        <div className={`space-y-8 ${mobileView === 'preview' ? 'hidden lg:block' : 'block'} h-auto lg:max-h-[85vh] lg:overflow-y-auto pr-2 custom-scrollbar`}>
           
           {/* 0. Resume Style & Customization */}
           <Section title="Resume Style" icon={<PaintBrush size={24} />} color="brand-primary">
@@ -455,14 +482,14 @@ export default function ResumeBuilder() {
         </div>
 
         {/* PREVIEW SIDE */}
-        <div className="sticky top-24 hidden lg:block">
+        <div className={`sticky top-24 ${mobileView === 'edit' ? 'hidden lg:block' : 'block'}`}>
            <div className="flex justify-between items-center mb-4 px-2">
              <h3 className="text-xl font-heading font-bold text-white flex items-center gap-2">
                <DownloadSimple className="text-brand-primary" /> Live Preview
              </h3>
              <span className="text-[10px] uppercase tracking-widest text-text-muted bg-white/5 px-2 py-1 rounded border border-white/10">A4 Standard Format</span>
            </div>
-           <div className="max-h-[85vh] overflow-y-auto pr-2 custom-scrollbar shadow-2xl rounded-xl">
+           <div className="h-auto lg:max-h-[85vh] lg:overflow-y-auto pr-2 custom-scrollbar shadow-2xl rounded-xl">
              <ResumePreview />
            </div>
         </div>

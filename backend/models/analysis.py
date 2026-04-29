@@ -31,7 +31,12 @@ class InterviewQuestion(BaseModel):
     category: str
     suggested_answer: str
 
+import uuid
+
 class AnalysisResponse(BaseModel):
+    id: Optional[str] = None
+    user_id: Optional[str] = None
+    resume_id: Optional[str] = None
     overall_score: int
     score_breakdown: ScoreBreakdown
     strengths: List[str]
@@ -40,7 +45,7 @@ class AnalysisResponse(BaseModel):
     ats_score: int
     ats_tips: List[str]
     missing_keywords: KeywordGroup
-    section_checker: List[SectionStatus]
+    section_checker: Optional[List[SectionStatus]] = []
     industry_feedback: Optional[str] = None
     salary_estimate: Optional[SalaryEstimate] = None
     career_path: Optional[CareerPath] = None
@@ -48,3 +53,8 @@ class AnalysisResponse(BaseModel):
     match_percentage: Optional[int] = None
     matched_keywords: Optional[List[str]] = None
     raw_text: str = ""
+
+    class Config:
+        json_encoders = {
+            uuid.UUID: str
+        }

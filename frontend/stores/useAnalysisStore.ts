@@ -37,6 +37,7 @@ interface InterviewQuestion {
 }
 
 interface AnalysisResult {
+  id?: string;
   overall_score: number;
   score_breakdown: ScoreBreakdown;
   strengths: string[];

@@ -53,7 +53,7 @@ export default function ScoreTrend({ data }: ScoreTrendProps) {
       score: item.overall_score
     }));
 
-  if (chartData.length < 1) return null;
+  if (!data || data.length < 1) return null;
 
   return (
     <motion.div 
@@ -71,15 +71,9 @@ export default function ScoreTrend({ data }: ScoreTrendProps) {
         </div>
       </div>
 
-      <div style={{ width: '100%', height: 300 }}>
+      <div style={{ width: '100%', height: 250 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData}>
-            <defs>
-              <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#00E5FF" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#00E5FF" stopOpacity={0}/>
-              </linearGradient>
-            </defs>
+          <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
             <XAxis 
               dataKey="date" 
@@ -94,18 +88,16 @@ export default function ScoreTrend({ data }: ScoreTrendProps) {
               width={35}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Area 
+            <Line 
               type="monotone" 
               dataKey="score" 
               stroke="#00E5FF" 
               strokeWidth={3}
-              fillOpacity={1} 
-              fill="url(#colorScore)" 
-              animationDuration={1500}
               dot={{ fill: '#00E5FF', r: 6 }}
               activeDot={{ r: 8 }}
+              animationDuration={1500}
             />
-          </AreaChart>
+          </LineChart>
         </ResponsiveContainer>
       </div>
 

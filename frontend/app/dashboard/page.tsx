@@ -29,7 +29,7 @@ import {
 } from '@phosphor-icons/react';
 import { useLanguageStore } from '../../stores/useLanguageStore';
 import { translations } from '../../lib/translations';
-import { getAnalysisHistory, generateAnalysisReport } from '../../lib/api';
+import api, { getAnalysisHistory, generateAnalysisReport } from '../../lib/api';
 
 import AuthGuard from '../../components/auth/AuthGuard';
 
@@ -59,7 +59,7 @@ function WelcomeBanner({
     
     if (diffInSeconds < 60) return 'just now';
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 86400)}h ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
     return `${Math.floor(diffInSeconds / 86400)}d ago`;
   };
 
@@ -143,20 +143,26 @@ function DashboardContent() {
   }, [result, router]);
 
   const handleShare = async () => {
-    setIsSharing(true);
-    // Use the authentication token from store for sharing.
-    const shareToken = token; 
-    if (!shareToken) {
-      alert('Authentication token not available for sharing.');
-      setIsSharing(false);
+    if (!result?.id) {
+      alert('Analysis ID not available. Please try refreshing.');
       return;
     }
-    const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL}/share/${shareToken}`;
+    setIsSharing(true);
     try {
-      await navigator.clipboard.writeText(shareUrl);
-      alert('Analysis link copied to clipboard!');
+      const res = await api.post('/share', {
+        analysis_id: result.id
+      });
+      const shareUrl = `${window.location.origin}/shared/${res.data.share_token}`;
+      
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        alert('Analysis link copied to clipboard!');
+      } catch (err) {
+        window.prompt('Copy this link:', shareUrl);
+      }
     } catch (err) {
-      console.error('Failed to copy!', err);
+      console.error('Failed to share analysis:', err);
+      alert('Failed to generate share link.');
     }
     setTimeout(() => setIsSharing(false), 2000);
   };
@@ -201,42 +207,42 @@ function DashboardContent() {
           <ArrowLeft size={20} className={`${lang !== 'en' ? 'rotate-180' : ''} group-hover:-translate-x-1 transition-transform`} />
           {t.back}
         </button>
-        <div className="flex flex-wrap gap-4">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mb-6 w-full md:w-auto">
           <button 
             onClick={handleDownloadReport}
             disabled={reportLoading}
-            className="glass-card border-white/10 !bg-white/5 text-text-muted !py-2 !px-4 flex items-center gap-2 rounded-lg font-bold transition-all hover:bg-white/10"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-xl border border-white/10 bg-white/5 text-text-muted font-bold transition-all hover:bg-white/10"
           >
-            {reportLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Printer size={20} weight="fill" />}
-            Print Report
+            {reportLoading ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Printer size={16} weight="fill" />}
+            <span>Print</span>
           </button>
           <button 
             onClick={handleShare}
-            className="glass-card border-brand-primary/30 text-brand-primary !py-2 !px-4 flex items-center gap-2 rounded-lg font-bold transition-all hover:bg-brand-primary/10"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-xl border border-brand-primary/30 bg-white/5 text-brand-primary font-bold transition-all hover:bg-brand-primary/10"
           >
-            <ShareNetwork size={20} weight={isSharing ? "fill" : "bold"} />
-            {isSharing ? 'Copied!' : 'Share Analysis'}
+            <ShareNetwork size={16} weight={isSharing ? "fill" : "bold"} />
+            <span>{isSharing ? 'Copied!' : 'Share'}</span>
           </button>
           <button 
             onClick={() => setShowInterview(!showInterview)}
-            className={`!py-2 !px-4 flex items-center gap-2 rounded-lg font-bold transition-all border ${showInterview ? 'bg-brand-primary text-white border-brand-primary' : 'glass-card border-brand-primary/30 text-brand-primary'}`}
+            className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-xl border font-bold transition-all ${showInterview ? 'bg-brand-primary text-white border-brand-primary' : 'border-brand-primary/30 text-brand-primary bg-white/5'}`}
           >
-            <MicrophoneStage size={20} weight="fill" />
-            {showInterview ? t.viewAnalysis : t.mockInterview}
+            <MicrophoneStage size={16} weight="fill" />
+            <span>{showInterview ? 'Analysis' : 'Mock'}</span>
           </button>
           <button 
             onClick={() => router.push('/builder')}
-            className="glass-card border-brand-warning/30 text-brand-warning !py-2 !px-4 flex items-center gap-2 rounded-lg font-bold transition-all"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-xl border border-brand-warning/30 bg-white/5 text-brand-warning font-bold transition-all"
           >
-            <FileText size={20} weight="fill" />
-            {t.builder}
+            <FileText size={16} weight="fill" />
+            <span>Builder</span>
           </button>
           <button 
             onClick={() => setIsImproveModalOpen(true)}
-            className="neon-button !py-2 !px-4 flex items-center gap-2"
+            className="col-span-2 sm:col-span-1 neon-button !py-2 !px-4 flex items-center justify-center gap-1.5 text-xs sm:text-sm"
           >
-            <MagicWand size={20} weight="fill" />
-            {t.improveResume}
+            <MagicWand size={16} weight="fill" />
+            <span>Improve</span>
           </button>
         </div>
       </div>
@@ -284,7 +290,7 @@ function DashboardContent() {
                   description={t.scoreDesc}
                 />
               </div>
-              <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
                 <ScoreCard score={result.score_breakdown.formatting} label="Formatting" />
                 <ScoreCard score={result.score_breakdown.skills} label="Skills" />
                 <ScoreCard score={result.score_breakdown.experience} label="Experience" />

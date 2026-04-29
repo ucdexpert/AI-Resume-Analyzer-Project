@@ -77,6 +77,17 @@ def analyze_resume_with_ai(resume_text: str, job_description: str = None, lang: 
         filtered_response_data = {k: v for k, v in response_data.items() if k in allowed_keys}
         response_data = filtered_response_data
         
+        # Ensure section_checker exists
+        if 'section_checker' not in response_data:
+            response_data['section_checker'] = [
+                {"name": "Contact Info", "exists": True},
+                {"name": "Summary", "exists": True},
+                {"name": "Experience", "exists": True},
+                {"name": "Education", "exists": True},
+                {"name": "Skills", "exists": True},
+                {"name": "Projects", "exists": True}
+            ]
+
         # Sanitize list fields to ensure they contain only strings
         list_fields = ['strengths', 'weaknesses', 'suggestions', 'ats_tips', 'matched_keywords']
         for field in list_fields:

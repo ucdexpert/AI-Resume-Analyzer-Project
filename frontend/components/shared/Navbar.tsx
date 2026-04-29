@@ -28,10 +28,13 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-lg border-b border-white/10 px-6 py-4">
       <div className="container mx-auto flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 bg-brand-primary rounded-xl flex items-center justify-center shadow-lg shadow-brand-primary/20 group-hover:rotate-12 transition-transform">
-            <FileText size={24} weight="fill" className="text-white" />
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-brand-primary rounded-xl flex items-center justify-center shadow-lg shadow-brand-primary/20 group-hover:rotate-12 transition-transform">
+            <FileText size={20} weight="fill" className="text-white md:hidden" />
+            <FileText size={24} weight="fill" className="text-white hidden md:block" />
           </div>
-          <span className="text-xl font-heading font-bold text-white tracking-tight">AI Resume <span className="text-brand-primary">Analyzer</span></span>
+          <span className="font-bold text-white text-sm md:text-base whitespace-nowrap font-heading tracking-tight">
+            AI Resume<span className="text-brand-primary hidden sm:inline"> Analyzer</span>
+          </span>
         </Link>
 
         {/* Desktop Menu */}

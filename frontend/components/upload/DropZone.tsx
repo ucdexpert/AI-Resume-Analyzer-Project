@@ -6,14 +6,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { UploadSimple, FilePdf, X, CheckCircle, WarningCircle } from '@phosphor-icons/react';
 import { analyzeResume } from '../../lib/api';
 import { useAnalysisStore } from '../../stores/useAnalysisStore';
+import useAuthStore from '../../stores/useAuthStore';
 import { useRouter } from 'next/navigation';
 import { useLanguageStore } from '../../stores/useLanguageStore';
 
-export default function DropZone() {
+interface DropZoneProps {
+  onAuthRequired: (file: File, jobDescription: string) => void;
+}
+
+export default function DropZone({ onAuthRequired }: DropZoneProps) {
   const [file, setFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState('');
   const { setAnalyzing, setResult, setError, isAnalyzing, error } = useAnalysisStore();
   const { lang } = useLanguageStore();
+  const { isLoggedIn } = useAuthStore();
   const router = useRouter();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -37,6 +43,11 @@ export default function DropZone() {
 
   const handleUpload = async () => {
     if (!file) return;
+
+    if (!isLoggedIn) {
+      onAuthRequired(file, jobDescription);
+      return;
+    }
 
     setAnalyzing(true);
     try {

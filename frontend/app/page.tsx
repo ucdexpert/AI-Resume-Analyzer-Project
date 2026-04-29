@@ -1,14 +1,52 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import DropZone from '../components/upload/DropZone';
-import { Sparkle, Target, Rocket, ChartLineUp, FileText, MagnifyingGlass, Lightbulb } from '@phosphor-icons/react';
+import AuthModal from '../components/auth/AuthModal';
+import useAuthStore from '../stores/useAuthStore';
+import { useAnalysisStore } from '../stores/useAnalysisStore';
+import { analyzeResume } from '../lib/api';
+import { useRouter } from 'next/navigation';
+import { Sparkle, Target, Rocket, ChartLineUp, FileText, MagnifyingGlass, Lightbulb, User } from '@phosphor-icons/react';
 import { useLanguageStore } from '../stores/useLanguageStore';
 import { translations } from '../lib/translations';
 
 export default function Home() {
   const { lang } = useLanguageStore();
   const t = translations[lang];
+  const { isLoggedIn, user } = useAuthStore();
+  const { setAnalyzing, setResult, setError } = useAnalysisStore();
+  const router = useRouter();
+
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [pendingFile, setPendingFile] = useState<{ file: File, jd: string } | null>(null);
+
+  const startAnalysis = async (file: File, jobDescription: string) => {
+    setAnalyzing(true);
+    try {
+      const data = await analyzeResume(file, jobDescription, lang);
+      setResult(data);
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err.message || "Something went wrong during analysis.");
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const onAuthRequired = (file: File, jd: string) => {
+    setPendingFile({ file, jd });
+    setShowAuthModal(true);
+  };
+
+  const handleAuthSuccess = () => {
+    setShowAuthModal(false);
+    if (pendingFile) {
+      startAnalysis(pendingFile.file, pendingFile.jd);
+      setPendingFile(null);
+    }
+  };
 
   const features = [
     {
@@ -65,16 +103,30 @@ export default function Home() {
               <Sparkle weight="fill" />
               Powered by Groq Llama 3.3 Versatile
             </span>
-            <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 leading-tight">
-              {t.heroTitle.split(' ').map((word, i) => (
-                <span key={i} className={word === 'Resume' || word === 'ریزیومے' || word === 'السيرة' ? 'text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-cyan-400' : ''}>
-                  {word}{' '}
-                </span>
-              ))}
-            </h1>
-            <p className="text-xl text-text-muted mb-10 leading-relaxed">
-              {t.heroSub}
-            </p>
+            
+            {isLoggedIn && user ? (
+               <div className="mb-8 flex flex-col items-center">
+                 <div className="w-16 h-16 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary mb-4 border border-brand-primary/20">
+                    <User size={32} weight="duotone" />
+                 </div>
+                 <h2 className="text-2xl font-bold text-white mb-2">Welcome back, {user.name}!</h2>
+                 <p className="text-text-muted">Ready to optimize another resume?</p>
+               </div>
+            ) : (
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight">
+                {t.heroTitle.split(' ').map((word, i) => (
+                  <span key={i} className={word === 'Resume' || word === 'ریزیومے' || word === 'السيرة' ? 'text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-cyan-400' : ''}>
+                    {word}{' '}
+                  </span>
+                ))}
+              </h1>
+            )}
+
+            {!isLoggedIn && (
+               <p className="text-xl text-text-muted mb-10 leading-relaxed">
+                 {t.heroSub}
+               </p>
+            )}
           </motion.div>
 
           <motion.div
@@ -82,9 +134,19 @@ export default function Home() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
           >
-            <DropZone />
+            <DropZone onAuthRequired={onAuthRequired} />
           </motion.div>
         </div>
+
+        {showAuthModal && (
+          <AuthModal 
+            onSuccess={handleAuthSuccess}
+            onClose={() => {
+              setShowAuthModal(false);
+              setPendingFile(null);
+            }}
+          />
+        )}
 
         {/* How It Works Section */}
         <div className="mt-32 mb-32">

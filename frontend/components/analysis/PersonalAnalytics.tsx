@@ -103,9 +103,9 @@ export default function PersonalAnalytics({ history }: AnalyticsProps) {
             <Globe size={24} weight="duotone" className="text-brand-primary" />
             Industry Benchmarks (Pakistan Market)
         </h4>
-        <div style={{ width: '100%', height: 300 }}>
+        <div style={{ width: '100%', height: 250 }}>
             <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={benchmarks} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+                <BarChart data={benchmarks} margin={{ top: 20, right: 10, left: 0, bottom: 30 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                     <XAxis 
                         dataKey="category"
@@ -113,9 +113,9 @@ export default function PersonalAnalytics({ history }: AnalyticsProps) {
                         tickLine={false}
                         axisLine={false}
                         interval={0}
-                        angle={-15}
+                        angle={-20}
                         textAnchor="end"
-                        height={40}
+                        height={50}
                     />
                     <YAxis hide />
                     <Tooltip 

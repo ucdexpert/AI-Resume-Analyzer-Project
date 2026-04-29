@@ -124,6 +124,16 @@ async def analyze_resume(
                 except:
                     pass
         res['raw_text'] = text # Ensure raw_text is always present
+        res.setdefault('section_checker', [])
+
+        # Convert all UUID fields to strings
+        if 'id' in res and res['id']:
+            res['id'] = str(res['id'])
+        if 'user_id' in res and res['user_id']:
+            res['user_id'] = str(res['user_id'])
+        if 'resume_id' in res and res['resume_id']:
+            res['resume_id'] = str(res['resume_id'])
+
         return AnalysisResponse(**res)
 
     # 5. Save to Database & Increment Usage
@@ -137,13 +147,14 @@ async def analyze_resume(
             current_user["id"], file.filename, text
         )
 
-        await db.execute(
+        analysis_id = await db.fetchrow(
             """
             INSERT INTO analysis (
                 user_id, resume_id, overall_score, score_breakdown, ats_score, ats_tips,
                 strengths, weaknesses, suggestions, missing_keywords,
                 industry_feedback, salary_estimate, career_path, interview_questions
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+            RETURNING id
             """,
             current_user["id"],
             resume_id["id"],
@@ -161,6 +172,8 @@ async def analyze_resume(
             json.dumps(analysis_result.get("interview_questions"))
         )
         
+        analysis_result["id"] = str(analysis_id["id"])
+        
 
 
         background_tasks.add_task(
@@ -175,34 +188,80 @@ async def analyze_resume(
     analysis_result["raw_text"] = text
     return analysis_result
 
+@router.post("/share")
+async def share_analysis(
+    req: dict,
+    current_user=Depends(get_current_user),
+    db=Depends(get_db)
+):
+    analysis_id = req.get("analysis_id")
+    if not analysis_id:
+        raise HTTPException(status_code=400, detail="analysis_id is required")
+    
+    import uuid
+    share_token = str(uuid.uuid4())
+    
+    # Ensure column exists (one-time check/migration)
+    try:
+        await db.execute("ALTER TABLE analysis ADD COLUMN IF NOT EXISTS share_token UUID UNIQUE")
+    except:
+        pass
+
+    await db.execute(
+        "UPDATE analysis SET share_token = $1::uuid WHERE id = $2::uuid AND user_id = $3::uuid",
+        share_token, analysis_id, current_user["id"]
+    )
+    
+    return {"share_token": share_token}
+
+@router.get("/shared/{share_token}")
+async def get_shared_analysis(
+    share_token: str,
+    db=Depends(get_db)
+):
+    row = await db.fetchrow("""
+        SELECT a.*, r.file_name, r.uploaded_at
+        FROM analysis a
+        JOIN resumes r ON a.resume_id = r.id
+        WHERE a.share_token = $1::uuid
+    """, share_token)
+    
+    if not row:
+        raise HTTPException(status_code=404, detail="Analysis not found or link expired")
+    
+    res = dict(row)
+    json_fields = [
+        'score_breakdown', 'ats_tips', 'strengths', 'weaknesses', 
+        'suggestions', 'missing_keywords', 'salary_estimate', 
+        'career_path', 'interview_questions'
+    ]
+    for field in json_fields:
+        if res.get(field):
+            try:
+                res[field] = json.loads(res[field])
+            except:
+                pass
+    
+    res['id'] = str(res['id'])
+    res['user_id'] = str(res['user_id'])
+    res['resume_id'] = str(res['resume_id'])
+    return res
+
 @router.get("/history")
 async def get_analysis_history(
     current_user=Depends(get_current_user),
     db=Depends(get_db)
 ):
-    try:
-        query = """
-            SELECT a.id, a.user_id, a.resume_id, a.overall_score, a.score_breakdown, a.ats_score, a.ats_tips, a.strengths, a.weaknesses, a.suggestions, a.missing_keywords, a.industry_feedback, a.salary_estimate, a.career_path, a.interview_questions, a.created_at, r.file_name, r.uploaded_at
-            FROM analysis a
-            JOIN resumes r ON a.resume_id = r.id
-            WHERE a.user_id = $1
-            ORDER BY a.created_at DESC
-        """
-        history = await db.fetch(query, current_user["id"])
-    except Exception as e:
-        print(f"History Query Error (trying fallback): {e}")
-        # Fallback query with only basic columns that are guaranteed to exist
-        query = """
-            SELECT a.id, a.user_id, a.resume_id, a.overall_score, a.ats_score, a.strengths, a.weaknesses, a.created_at, r.file_name, r.uploaded_at
-            FROM analysis a
-            JOIN resumes r ON a.resume_id = r.id
-            WHERE a.user_id = $1
-            ORDER BY a.created_at DESC
-        """
-        history = await db.fetch(query, current_user["id"])
+    rows = await db.fetch("""
+        SELECT a.*, r.file_name, r.uploaded_at
+        FROM analysis a
+        JOIN resumes r ON a.resume_id = r.id
+        WHERE a.user_id = $1::uuid
+        ORDER BY a.created_at DESC
+    """, current_user["id"])
     
-    results = []
-    for row in history:
+    history = []
+    for row in rows:
         res = dict(row)
         json_fields = [
             'score_breakdown', 'ats_tips', 'strengths', 'weaknesses', 
@@ -215,12 +274,9 @@ async def get_analysis_history(
                     res[field] = json.loads(res[field])
                 except:
                     pass
-        
         res['id'] = str(res['id'])
         res['user_id'] = str(res['user_id'])
         res['resume_id'] = str(res['resume_id'])
-        res['created_at'] = res['created_at'].isoformat()
-        res['uploaded_at'] = res['uploaded_at'].isoformat()
-        results.append(res)
-        
-    return results
+        history.append(res)
+    
+    return history
