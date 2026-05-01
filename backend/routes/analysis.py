@@ -79,11 +79,10 @@ async def analyze_resume(
     if not file.filename.lower().endswith('.pdf') or file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Strictly PDF files are allowed.")
 
-    # 2. Check User Limit
-    user_stats = await db.fetchrow("SELECT plan, analysis_count FROM users WHERE id = $1", current_user["id"])
-    if user_stats["plan"] == "free" and user_stats["analysis_count"] >= 3:
-        raise HTTPException(status_code=403, detail="Free limit reached. Please upgrade to Pro for unlimited analyses.")
-
+    # 2. Check User Limit (Counting actual records in DB for accuracy)
+    user_data = await db.fetchrow("SELECT plan FROM users WHERE id = $1", current_user["id"])
+    actual_count = await db.fetchval("SELECT COUNT(*) FROM analysis WHERE user_id = $1", current_user["id"])
+    
     # 3. Extract Text
     content = await file.read()
     if len(content) > 5 * 1024 * 1024:  # 5MB limit
@@ -93,105 +92,62 @@ async def analyze_resume(
     if not text:
         raise HTTPException(status_code=400, detail="Could not extract text from PDF.")
 
-    # 4. AI Analysis
-    try:
-        analysis_result = analyze_resume_with_ai(text, job_description, lang)
-        if not analysis_result:
-            raise HTTPException(status_code=500, detail="AI Analysis failed.")
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI Analysis Internal Server Error: {e}")
-
-    # Check for existing analysis of the same resume in the last 5 minutes
+    # 4. Check for existing analysis (Cache)
+    # This allows users to re-upload the same file without using a new slot
     existing_analysis_record = await db.fetchrow("""
-        SELECT a.id, a.user_id, a.resume_id, a.overall_score, a.score_breakdown, a.ats_score, a.ats_tips, a.strengths, a.weaknesses, a.suggestions, a.missing_keywords, a.industry_feedback, a.salary_estimate, a.career_path, a.interview_questions, a.created_at, r.file_name, r.raw_text, r.uploaded_at
+        SELECT a.*, r.file_name, r.raw_text
         FROM analysis a
         JOIN resumes r ON a.resume_id = r.id
         WHERE a.user_id = $1 
         AND r.raw_text = $2
-        AND a.created_at > NOW() - INTERVAL '5 minutes'
         ORDER BY a.created_at DESC LIMIT 1
     """, current_user["id"], text)
 
     if existing_analysis_record:
-        # Convert record to dict for processing
         res = dict(existing_analysis_record)
-        json_fields = [
-            'score_breakdown', 'ats_tips', 'strengths', 'weaknesses', 
-            'suggestions', 'missing_keywords', 'salary_estimate', 
-            'career_path', 'interview_questions'
-        ]
+        json_fields = ['score_breakdown', 'ats_tips', 'strengths', 'weaknesses', 'suggestions', 'missing_keywords', 'salary_estimate', 'career_path', 'interview_questions']
         for field in json_fields:
             if res.get(field):
-                try:
-                    res[field] = json.loads(res[field])
-                except:
-                    pass
-        res['raw_text'] = text # Ensure raw_text is always present
-        res.setdefault('section_checker', [])
-
-        # Convert all UUID fields to strings
-        if 'id' in res and res['id']:
-            res['id'] = str(res['id'])
-        if 'user_id' in res and res['user_id']:
-            res['user_id'] = str(res['user_id'])
-        if 'resume_id' in res and res['resume_id']:
-            res['resume_id'] = str(res['resume_id'])
-
+                try: res[field] = json.loads(res[field]) if isinstance(res[field], str) else res[field]
+                except: pass
+        res['id'] = str(res['id'])
+        res['user_id'] = str(res['user_id'])
+        res['resume_id'] = str(res['resume_id'])
         return AnalysisResponse(**res)
 
-    # 5. Save to Database & Increment Usage
-    try:
-        resume_id = await db.fetchrow(
-            """
-            INSERT INTO resumes (user_id, file_name, raw_text)
-            VALUES ($1, $2, $3)
-            RETURNING id
-            """,
-            current_user["id"], file.filename, text
-        )
+    # 5. NOW enforce limit for NEW analyses
+    if user_data["plan"] == "free" and actual_count >= 3:
+        raise HTTPException(status_code=403, detail="Free limit reached (3/3). Please upgrade to Pro for unlimited analyses.")
 
-        analysis_id = await db.fetchrow(
-            """
+    # 6. AI Analysis
+    try:
+        analysis_result = analyze_resume_with_ai(text, job_description, lang)
+        if not analysis_result:
+            raise HTTPException(status_code=500, detail="AI Analysis failed.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI Analysis Error: {e}")
+
+    # 7. Save to Database
+    try:
+        resume_id = await db.fetchval("INSERT INTO resumes (user_id, file_name, raw_text) VALUES ($1, $2, $3) RETURNING id", current_user["id"], file.filename, text)
+
+        analysis_id = await db.fetchval("""
             INSERT INTO analysis (
                 user_id, resume_id, overall_score, score_breakdown, ats_score, ats_tips,
                 strengths, weaknesses, suggestions, missing_keywords,
                 industry_feedback, salary_estimate, career_path, interview_questions
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
             RETURNING id
-            """,
-            current_user["id"],
-            resume_id["id"],
-            analysis_result.get("overall_score"),
-            json.dumps(analysis_result.get("score_breakdown")),
-            analysis_result.get("ats_score"),
-            json.dumps(analysis_result.get("ats_tips")),
-            json.dumps(analysis_result.get("strengths")),
-            json.dumps(analysis_result.get("weaknesses")),
-            json.dumps(analysis_result.get("suggestions")),
-            json.dumps(analysis_result.get("missing_keywords")),
-            analysis_result.get("industry_feedback"),
-            json.dumps(analysis_result.get("salary_estimate")),
-            json.dumps(analysis_result.get("career_path")),
-            json.dumps(analysis_result.get("interview_questions"))
-        )
+        """, current_user["id"], resume_id, analysis_result.get("overall_score"), json.dumps(analysis_result.get("score_breakdown")), analysis_result.get("ats_score"), json.dumps(analysis_result.get("ats_tips")), json.dumps(analysis_result.get("strengths")), json.dumps(analysis_result.get("weaknesses")), json.dumps(analysis_result.get("suggestions")), json.dumps(analysis_result.get("missing_keywords")), analysis_result.get("industry_feedback"), json.dumps(analysis_result.get("salary_estimate")), json.dumps(analysis_result.get("career_path")), json.dumps(analysis_result.get("interview_questions")))
         
-        # INCREMENT USER USAGE COUNT
+        analysis_result["id"] = str(analysis_id)
+        
+        # Increment legacy counter for compatibility
         await db.execute("UPDATE users SET analysis_count = analysis_count + 1 WHERE id = $1", current_user["id"])
-        
-        analysis_result["id"] = str(analysis_id["id"])
-        
 
-
-        background_tasks.add_task(
-            send_analysis_email, 
-            current_user["email"], 
-            current_user["name"], 
-            analysis_result.get("overall_score")
-        )
+        background_tasks.add_task(send_analysis_email, current_user["email"], current_user["name"], analysis_result.get("overall_score"))
     except Exception as e:
-        print(f"Error saving analysis to DB: {e}")
+        print(f"DB Error: {e}")
 
     analysis_result["raw_text"] = text
     return analysis_result
@@ -228,7 +184,7 @@ async def get_shared_analysis(
     db=Depends(get_db)
 ):
     row = await db.fetchrow("""
-        SELECT a.*, r.file_name, r.uploaded_at
+        SELECT a.*, r.file_name, r.raw_text
         FROM analysis a
         JOIN resumes r ON a.resume_id = r.id
         WHERE a.share_token = $1::uuid
@@ -246,7 +202,7 @@ async def get_shared_analysis(
     for field in json_fields:
         if res.get(field):
             try:
-                res[field] = json.loads(res[field])
+                res[field] = json.loads(res[field]) if isinstance(res[field], str) else res[field]
             except:
                 pass
     
@@ -279,7 +235,7 @@ async def get_analysis_history(
         for field in json_fields:
             if res.get(field):
                 try:
-                    res[field] = json.loads(res[field])
+                    res[field] = json.loads(res[field]) if isinstance(res[field], str) else res[field]
                 except:
                     pass
         res['id'] = str(res['id'])

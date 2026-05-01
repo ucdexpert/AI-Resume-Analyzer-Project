@@ -25,19 +25,20 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative w-full max-w-4xl bg-[#0a0a0f] border border-brand-primary/20 rounded-[2.5rem] shadow-2xl overflow-hidden"
+            className="relative w-full max-w-4xl bg-[#0a0a0f] border border-brand-primary/20 rounded-3xl md:rounded-[2.5rem] shadow-2xl overflow-y-auto max-h-[95vh] md:overflow-hidden"
           >
-            {/* Close Button */}
+            {/* Close Button - Moved inside and made more prominent */}
             <button 
               onClick={onClose}
-              className="absolute top-6 right-6 text-gray-500 hover:text-white z-10 p-2 hover:bg-white/5 rounded-full transition-all"
+              className="absolute top-4 right-4 md:top-6 md:right-6 text-white bg-white/10 hover:bg-white/20 z-50 p-2 rounded-full transition-all backdrop-blur-md border border-white/10"
+              aria-label="Close modal"
             >
-              <X size={24} />
+              <X size={20} weight="bold" />
             </button>
 
-            <div className="grid md:grid-cols-2">
+            <div className="grid md:grid-cols-2 h-full">
                 {/* Left Side: Illustration & Hook */}
-                <div className="p-12 bg-gradient-to-br from-brand-primary/10 via-transparent to-transparent hidden md:flex flex-col justify-between">
+                <div className="p-8 md:p-12 bg-gradient-to-br from-brand-primary/10 via-transparent to-transparent flex flex-col justify-between border-b md:border-b-0 md:border-r border-white/5">
                     <div>
                         <div className="w-16 h-16 bg-brand-primary/20 rounded-2xl flex items-center justify-center mb-8 border border-brand-primary/30">
                             <Crown size={32} className="text-brand-primary" weight="fill" />

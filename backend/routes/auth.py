@@ -163,12 +163,16 @@ async def login(request: Request, data: LoginRequest, db=Depends(get_db)):
     }
 
 @router.get("/me")
-async def me(current_user=Depends(get_current_user)):
+async def me(current_user=Depends(get_current_user), db=Depends(get_db)):
+    # Get actual analysis count from DB
+    actual_count = await db.fetchval("SELECT COUNT(*) FROM analysis WHERE user_id = $1", current_user["id"])
+    
     user_dict = dict(current_user)
     return {
         "id": str(user_dict["id"]),
         "name": user_dict["name"],
         "email": user_dict["email"],
-        "analysis_count": user_dict.get("analysis_count", 0),
-        "is_verified": user_dict.get("is_verified", False)
+        "analysis_count": actual_count,
+        "is_verified": user_dict.get("is_verified", False),
+        "plan": user_dict.get("plan", "free")
     }
