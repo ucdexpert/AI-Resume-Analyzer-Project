@@ -4,11 +4,11 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import os
-from routes import analysis, generators, auth, builder
+from routes import analysis, generators, auth, builder, admin, support, password
 from utils.db import db
 
 limiter = Limiter(key_func=get_remote_address)
-app = FastAPI(title="AI Resume Analyzer API")
+app = FastAPI(title="SkillSense API")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -41,7 +41,10 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(builder.router, prefix="/api")
 app.include_router(analysis.router, prefix="/api", tags=["Analysis"])
 app.include_router(generators.router, prefix="/api", tags=["Generators"])
+app.include_router(admin.router, prefix="/api")
+app.include_router(support.router, prefix="/api")
+app.include_router(password.router, prefix="/api")
 
 @app.get("/")
 async def root():
-    return {"message": "AI Resume Analyzer API is running"}
+    return {"message": "SkillSense API is running"}

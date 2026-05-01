@@ -1,4 +1,4 @@
-# JWT Authentication Flow — AI Resume Analyzer
+# JWT Authentication Flow — SkillSense
 
 ## 🔐 Tech Stack
 - **Backend:** FastAPI + python-jose + passlib

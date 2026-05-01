@@ -1,6 +1,6 @@
 {
-  "name": "AI Resume Analyzer",
-  "short_name": "AI Resume",
+  "name": "SkillSense",
+  "short_name": "SkillSense",
   "description": "Professional AI-powered resume analysis and builder.",
   "start_url": "/",
   "display": "standalone",

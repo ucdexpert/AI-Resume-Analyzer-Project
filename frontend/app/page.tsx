@@ -148,6 +148,78 @@ export default function Home() {
           />
         )}
 
+        {/* Stats Counter Section */}
+        <div className="mt-32 mb-40 border-y border-white/5 py-16 bg-white/[0.01]">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+            {[
+              { label: 'Resumes Analyzed', value: '10,000+', icon: <FileText size={24} /> },
+              { label: 'Happy Users', value: '5,000+', icon: <User size={24} /> },
+              { label: 'AI Insights Generated', value: '50,000+', icon: <Lightbulb size={24} /> },
+              { label: 'Success Rate', value: '94%', icon: <Rocket size={24} /> },
+            ].map((stat, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, scale: 0.5 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="text-center"
+              >
+                <div className="text-brand-primary mb-3 flex justify-center opacity-50">{stat.icon}</div>
+                <div className="text-3xl md:text-5xl font-black text-white mb-2">{stat.value}</div>
+                <div className="text-xs md:text-sm text-text-muted font-bold uppercase tracking-widest">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Before/After Section */}
+        <div className="mb-40">
+           <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-heading font-bold mb-4">See the <span className="text-brand-primary">Difference</span></h2>
+              <p className="text-text-muted">Transform your resume from "Just another candidate" to "Perfect match".</p>
+           </div>
+           
+           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+              {/* Before */}
+              <div className="relative group">
+                <div className="absolute -top-4 left-6 bg-red-500/20 text-red-400 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-red-500/30">Before SkillSense</div>
+                <div className="glass-card p-8 border-red-500/10 grayscale opacity-60">
+                   <div className="h-4 w-1/3 bg-white/10 rounded mb-4"></div>
+                   <div className="space-y-3">
+                      <div className="h-2 w-full bg-white/5 rounded"></div>
+                      <div className="h-2 w-full bg-white/5 rounded"></div>
+                      <div className="h-2 w-2/3 bg-white/5 rounded"></div>
+                   </div>
+                   <div className="mt-8 pt-8 border-t border-white/5 flex items-center justify-between">
+                      <span className="text-xs text-gray-600 font-bold uppercase">ATS SCORE</span>
+                      <span className="text-2xl font-black text-red-500">42%</span>
+                   </div>
+                </div>
+              </div>
+
+              {/* After */}
+              <div className="relative group">
+                <div className="absolute -top-4 left-6 bg-brand-primary/20 text-brand-primary text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-brand-primary/30 z-10 animate-pulse">After SkillSense</div>
+                <div className="glass-card p-8 border-brand-primary/50 shadow-[0_0_40px_rgba(0,229,255,0.1)] relative overflow-hidden">
+                   <div className="absolute top-0 right-0 p-4">
+                      <Sparkle size={24} className="text-brand-primary" weight="fill" />
+                   </div>
+                   <div className="h-4 w-1/3 bg-brand-primary/20 rounded mb-4"></div>
+                   <div className="space-y-3">
+                      <div className="h-2 w-full bg-brand-primary/10 rounded"></div>
+                      <div className="h-2 w-full bg-brand-primary/10 rounded"></div>
+                      <div className="h-2 w-5/6 bg-brand-primary/10 rounded"></div>
+                   </div>
+                   <div className="mt-8 pt-8 border-t border-white/5 flex items-center justify-between">
+                      <span className="text-xs text-brand-primary font-bold uppercase tracking-widest">ATS SCORE</span>
+                      <span className="text-4xl font-black text-white neon-text-glow">98%</span>
+                   </div>
+                </div>
+              </div>
+           </div>
+        </div>
+
         {/* How It Works Section */}
         <div className="mt-32 mb-32">
           <div className="text-center mb-16">
@@ -177,6 +249,57 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
+        </div>
+
+        {/* Testimonials Section */}
+        <div className="mb-40">
+           <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-heading font-bold mb-4">What Our <span className="text-brand-primary">Users Say</span></h2>
+              <p className="text-text-muted">Thousands of professionals have already landed their dream jobs.</p>
+           </div>
+           
+           <div className="grid md:grid-cols-3 gap-8">
+              {[
+                {
+                  name: "Sarah Chen",
+                  role: "Software Engineer",
+                  text: "SkillSense helped me identify key missing skills on my resume. I landed 3 interviews within a week of making the changes!",
+                  avatar: "SC"
+                },
+                {
+                  name: "James Wilson",
+                  role: "Product Manager",
+                  text: "The ATS score is scarily accurate. I compared it with my internal recruiter tools and SkillSense is spot on.",
+                  avatar: "JW"
+                },
+                {
+                  name: "Priya Patel",
+                  role: "Marketing Director",
+                  text: "The AI suggestions are professional and actionable. It's like having a career coach available 24/7.",
+                  avatar: "PP"
+                }
+              ].map((testi, i) => (
+                <motion.div 
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="glass-card p-8 flex flex-col justify-between"
+                >
+                   <p className="text-gray-300 italic mb-8 leading-relaxed">"{testi.text}"</p>
+                   <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-brand-primary/20 flex items-center justify-center text-brand-primary font-bold border border-brand-primary/30">
+                        {testi.avatar}
+                      </div>
+                      <div>
+                        <h4 className="text-white font-bold text-sm">{testi.name}</h4>
+                        <p className="text-text-muted text-xs uppercase tracking-widest">{testi.role}</p>
+                      </div>
+                   </div>
+                </motion.div>
+              ))}
+           </div>
         </div>
 
         {/* Feature Grid */}

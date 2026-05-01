@@ -9,6 +9,7 @@ import { useAnalysisStore } from '../../stores/useAnalysisStore';
 import useAuthStore from '../../stores/useAuthStore';
 import { useRouter } from 'next/navigation';
 import { useLanguageStore } from '../../stores/useLanguageStore';
+import UpgradeModal from '../shared/UpgradeModal';
 
 interface DropZoneProps {
   onAuthRequired: (file: File, jobDescription: string) => void;
@@ -17,6 +18,7 @@ interface DropZoneProps {
 export default function DropZone({ onAuthRequired }: DropZoneProps) {
   const [file, setFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState('');
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { setAnalyzing, setResult, setError, isAnalyzing, error } = useAnalysisStore();
   const { lang } = useLanguageStore();
   const { isLoggedIn } = useAuthStore();
@@ -55,7 +57,11 @@ export default function DropZone({ onAuthRequired }: DropZoneProps) {
       setResult(data);
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.message || "Something went wrong during analysis.");
+      const message = err.message || "Something went wrong during analysis.";
+      if (message.toLowerCase().includes('limit') || message.toLowerCase().includes('upgrade')) {
+        setShowUpgradeModal(true);
+      }
+      setError(message);
     } finally {
       setAnalyzing(false);
     }
@@ -172,13 +178,32 @@ export default function DropZone({ onAuthRequired }: DropZoneProps) {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex items-center gap-2 text-brand-danger bg-brand-danger/10 p-3 rounded-lg border border-brand-danger/20"
+            className={`flex items-center gap-2 p-3 rounded-lg border ${
+              error.toLowerCase().includes('limit') 
+              ? 'text-brand-warning bg-brand-warning/10 border-brand-warning/20'
+              : 'text-brand-danger bg-brand-danger/10 border-brand-danger/20'
+            }`}
           >
             <WarningCircle size={20} />
-            <span className="text-sm">{error}</span>
+            <div className="flex flex-col">
+              <span className="text-sm font-bold">{error}</span>
+              {error.toLowerCase().includes('limit') && (
+                <button 
+                  onClick={() => setShowUpgradeModal(true)}
+                  className="text-[10px] text-brand-warning underline font-black uppercase tracking-widest mt-1 text-left"
+                >
+                  Upgrade to Pro for Unlimited Access
+                </button>
+              )}
+            </div>
           </motion.div>
         )}
       </div>
+
+      <UpgradeModal 
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+      />
     </div>
   );
 }

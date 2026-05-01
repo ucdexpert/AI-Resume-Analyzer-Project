@@ -128,7 +128,7 @@ export default function SharedAnalysisPage() {
         </div>
 
         <div className="mt-20 text-center">
-            <p className="text-text-muted text-xs">Built with <span className="text-white font-bold tracking-tight">AI Resume Analyzer</span></p>
+            <p className="text-text-muted text-xs">Built with <span className="text-white font-bold tracking-tight">SkillSense</span></p>
         </div>
       </div>
     </div>

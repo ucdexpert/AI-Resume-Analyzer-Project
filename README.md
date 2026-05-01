@@ -1,4 +1,4 @@
-# 🚀 AI Resume Analyzer & Builder
+# 🚀 SkillSense — AI Resume Analyzer & Builder
 
 An advanced, full-stack application designed to help job seekers optimize their resumes using AI. Features include real-time AI analysis, a professional resume builder with live preview, and high-fidelity PDF exports.
 

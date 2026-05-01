@@ -19,7 +19,7 @@ Everything core is implemented! Ab scalability pe focus hai.
 ### Tasks:
 - [x] Frontend deploy → Vercel
 - [x] Backend deploy → Hugging Face Spaces
-- [ ] Custom Domain add karo (e.g. airesume.pk)
+- [ ] Custom Domain add karo (e.g. skillsense.pk)
 - [x] README.md likho GitHub pe
 - [x] Environment variables production mein set karo
 - [x] CORS fix karo production ke liye

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Check, Sparkle, Crown, Buildings, Rocket } from '@phosphor-icons/react';
+import { Check, Sparkle, Crown, Buildings, Rocket, Clock } from '@phosphor-icons/react';
 import Navbar from '../../components/shared/Navbar';
 
 const PLANS = [
@@ -128,9 +128,13 @@ export default function PricingPage() {
               </button>
               
               {plan.name !== 'Free' && (
-                <p className="text-[10px] text-center text-brand-primary mt-4 font-bold uppercase tracking-widest animate-pulse">
-                    Payments Coming Soon
-                </p>
+                <div className="mt-6 p-4 rounded-2xl bg-brand-primary/5 border border-brand-primary/10 text-center relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-brand-primary/5 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                    <p className="text-[10px] text-brand-primary font-black uppercase tracking-[0.2em] relative z-10 flex items-center justify-center gap-2">
+                        <Clock size={14} weight="fill" className="animate-pulse" />
+                        Payments Coming Soon
+                    </p>
+                </div>
               )}
             </motion.div>
           ))}
