@@ -112,7 +112,7 @@ function WelcomeBanner({
 
 function DashboardContent() {
   const { result } = useAnalysisStore();
-  const { user, token } = useAuthStore();
+  const { user, token, setUser } = useAuthStore();
   const { lang } = useLanguageStore();
   const t = translations[lang];
   const router = useRouter();
@@ -129,18 +129,28 @@ function DashboardContent() {
       return;
     }
 
-    const fetchHistory = async () => {
+    const fetchData = async () => {
       try {
-        const data = await getAnalysisHistory();
-        setHistory(data);
+        const [historyData, userData] = await Promise.all([
+          getAnalysisHistory(),
+          api.get('/auth/me')
+        ]);
+        setHistory(historyData);
+        if (userData.data) {
+          setUser({
+            name: userData.data.name,
+            email: userData.data.email,
+            analysis_count: userData.data.analysis_count
+          });
+        }
       } catch (error) {
-        console.error('Error fetching history:', error);
+        console.error('Error fetching dashboard data:', error);
       } finally {
         setLoading(false);
       }
     };
-    fetchHistory();
-  }, [result, router]);
+    fetchData();
+  }, [result, router, setUser]);
 
   const handleShare = async () => {
     if (!result?.id) {

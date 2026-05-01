@@ -12,6 +12,7 @@ interface AuthState {
   user: User | null
   isLoggedIn: boolean
   login: (token: string, user: User) => void
+  setUser: (user: User) => void
   logout: () => void
 }
 
@@ -27,6 +28,8 @@ const useAuthStore = create<AuthState>()(
         user,
         isLoggedIn: true
       }),
+
+      setUser: (user) => set({ user }),
 
       logout: () => {
         set({

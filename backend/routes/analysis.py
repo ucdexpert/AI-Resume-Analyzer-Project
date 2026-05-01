@@ -79,6 +79,11 @@ async def analyze_resume(
     if not file.filename.lower().endswith('.pdf') or file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Strictly PDF files are allowed.")
 
+    # 2. Check User Limit
+    user_stats = await db.fetchrow("SELECT plan, analysis_count FROM users WHERE id = $1", current_user["id"])
+    if user_stats["plan"] == "free" and user_stats["analysis_count"] >= 3:
+        raise HTTPException(status_code=403, detail="Free limit reached. Please upgrade to Pro for unlimited analyses.")
+
     # 3. Extract Text
     content = await file.read()
     if len(content) > 5 * 1024 * 1024:  # 5MB limit
@@ -171,6 +176,9 @@ async def analyze_resume(
             json.dumps(analysis_result.get("career_path")),
             json.dumps(analysis_result.get("interview_questions"))
         )
+        
+        # INCREMENT USER USAGE COUNT
+        await db.execute("UPDATE users SET analysis_count = analysis_count + 1 WHERE id = $1", current_user["id"])
         
         analysis_result["id"] = str(analysis_id["id"])
         
