@@ -37,21 +37,21 @@ class AnalysisResponse(BaseModel):
     id: Optional[str] = None
     user_id: Optional[str] = None
     resume_id: Optional[str] = None
-    overall_score: int
-    score_breakdown: ScoreBreakdown
-    strengths: List[str]
-    weaknesses: List[str]
-    suggestions: List[str]
-    ats_score: int
-    ats_tips: List[str]
-    missing_keywords: KeywordGroup
+    overall_score: int = 0
+    score_breakdown: ScoreBreakdown = ScoreBreakdown(formatting=0, skills=0, experience=0, education=0, summary=0)
+    strengths: List[str] = []
+    weaknesses: List[str] = []
+    suggestions: List[str] = []
+    ats_score: int = 0
+    ats_tips: List[str] = []
+    missing_keywords: KeywordGroup = KeywordGroup(technical_skills=[], soft_skills=[], industry_terms=[])
     section_checker: Optional[List[SectionStatus]] = []
     industry_feedback: Optional[str] = None
     salary_estimate: Optional[SalaryEstimate] = None
     career_path: Optional[CareerPath] = None
     interview_questions: Optional[List[InterviewQuestion]] = None
-    match_percentage: Optional[int] = None
-    matched_keywords: Optional[List[str]] = None
+    match_percentage: Optional[int] = 0
+    matched_keywords: Optional[List[str]] = []
     raw_text: str = ""
 
     class Config:

@@ -73,11 +73,18 @@ export default function ScoreTrend({ data }: ScoreTrendProps) {
 
       <div style={{ width: '100%', height: 250 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData}>
+          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+            <defs>
+              <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#00E5FF" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#00E5FF" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
             <XAxis 
               dataKey="date" 
               hide={true}
+              padding={{ left: 40, right: 40 }}
             />
             <YAxis 
               domain={[0, 100]}
@@ -85,19 +92,21 @@ export default function ScoreTrend({ data }: ScoreTrendProps) {
               tick={{ fill: '#94a3b8', fontSize: 11 }}
               tickLine={false}
               axisLine={false}
-              width={35}
+              width={40}
             />
-            <Tooltip content={<CustomTooltip />} />
-            <Line 
+            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }} />
+            <Area 
               type="monotone" 
               dataKey="score" 
               stroke="#00E5FF" 
               strokeWidth={3}
-              dot={{ fill: '#00E5FF', r: 6 }}
-              activeDot={{ r: 8 }}
+              fillOpacity={1} 
+              fill="url(#colorScore)"
+              dot={{ fill: '#00E5FF', r: 5, strokeWidth: 2, stroke: '#0B0B0B' }}
+              activeDot={{ r: 7, strokeWidth: 0 }}
               animationDuration={1500}
             />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
 

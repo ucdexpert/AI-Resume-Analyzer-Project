@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface ScoreBreakdown {
   formatting: number;
@@ -26,8 +27,8 @@ interface SalaryEstimate {
 }
 
 interface CareerPath {
-  short_term: string;
-  long_term: string;
+  short_term: string[];
+  long_term: string[];
 }
 
 interface InterviewQuestion {
@@ -66,12 +67,19 @@ interface AnalysisState {
   reset: () => void;
 }
 
-export const useAnalysisStore = create<AnalysisState>((set) => ({
-  result: null,
-  isAnalyzing: false,
-  error: null,
-  setResult: (result) => set({ result, isAnalyzing: false, error: null }),
-  setAnalyzing: (status) => set({ isAnalyzing: status, error: null }),
-  setError: (error) => set({ error, isAnalyzing: false }),
-  reset: () => set({ result: null, isAnalyzing: false, error: null }),
-}));
+export const useAnalysisStore = create<AnalysisState>()(
+  persist(
+    (set) => ({
+      result: null,
+      isAnalyzing: false,
+      error: null,
+      setResult: (result) => set({ result, isAnalyzing: false, error: null }),
+      setAnalyzing: (status) => set({ isAnalyzing: status, error: null }),
+      setError: (error) => set({ error, isAnalyzing: false }),
+      reset: () => set({ result: null, isAnalyzing: false, error: null }),
+    }),
+    {
+      name: 'analysis-storage',
+    }
+  )
+);

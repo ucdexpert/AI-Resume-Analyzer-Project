@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import useBuilderStore from '../../stores/useBuilderStore';
+import useAuthStore from '../../stores/useAuthStore';
+import UpgradeModal from '../shared/UpgradeModal';
 import { 
   saveBuilderResume, 
   getBuilderResume, 
@@ -23,11 +25,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ResumePreview from './ResumePreview';
 
 const TEMPLATES = [
-  { id: 'modern', name: 'Modern Dark', desc: 'Clean, professional & impact-oriented' },
-  { id: 'minimal', name: 'Minimalist', desc: 'Focus on content with clean typography' },
-  { id: 'classic', name: 'Classic White', desc: 'Traditional recruiter-favorite layout' },
-  { id: 'creative', name: 'Creative', desc: 'Bold sidebar and accent colors' },
-  { id: 'executive', name: 'Executive', desc: 'Sophisticated layout for senior roles' }
+  { id: 'modern', name: 'Modern Dark', desc: 'Clean, professional & impact-oriented', isFree: true },
+  { id: 'minimal', name: 'Minimalist', desc: 'Focus on content with clean typography', isFree: false },
+  { id: 'classic', name: 'Classic White', desc: 'Traditional recruiter-favorite layout', isFree: false },
+  { id: 'creative', name: 'Creative', desc: 'Bold sidebar and accent colors', isFree: false },
+  { id: 'executive', name: 'Executive', desc: 'Sophisticated layout for senior roles', isFree: false }
 ];
 
 const THEME_COLORS = [
@@ -42,6 +44,9 @@ const THEME_COLORS = [
 
 export default function ResumeBuilder() {
   const store = useBuilderStore();
+  const { user } = useAuthStore();
+  const isPro = user?.plan?.toLowerCase() === 'pro';
+
   const [mobileView, setMobileView] = useState<'edit' | 'preview'>('edit');
   const [loading, setLoading] = useState(false);
   const [docLoading, setDocLoading] = useState(false);
@@ -52,6 +57,7 @@ export default function ResumeBuilder() {
   const [skillInput, setSkillInput] = useState('');
   const [aiGenerating, setAiGenerating] = useState(false);
   const [bulletGeneratingId, setBulletGeneratingId] = useState<string | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Load existing resume on mount
   useEffect(() => {
@@ -60,13 +66,18 @@ export default function ResumeBuilder() {
         const data = await getBuilderResume();
         if (data && Object.keys(data).length > 0) {
           store.setAll(data);
+          
+          // Force free template if user is free and saved template is premium
+          if (!isPro && data.template_id && data.template_id !== 'modern') {
+            store.updateField('template_id', 'modern');
+          }
         }
       } catch (err) {
         console.error("Failed to load resume", err);
       }
     };
     loadResume();
-  }, []);
+  }, [isPro]);
 
   // Auto-save logic
   useEffect(() => {
@@ -97,6 +108,10 @@ export default function ResumeBuilder() {
   };
 
   const handleSharePublic = async () => {
+    if (!isPro) {
+      setShowUpgradeModal(true);
+      return;
+    }
     setIsSharing(true);
     try {
       const { share_url } = await shareBuilderResume();
@@ -128,6 +143,10 @@ export default function ResumeBuilder() {
   };
 
   const handleDownloadDocx = async () => {
+    if (!isPro) {
+      setShowUpgradeModal(true);
+      return;
+    }
     setDocLoading(true);
     try {
       const blob = await generateBuilderDOCX(store);
@@ -146,6 +165,10 @@ export default function ResumeBuilder() {
   };
 
   const handleDownloadTxt = async () => {
+    if (!isPro) {
+      setShowUpgradeModal(true);
+      return;
+    }
     setTxtLoading(true);
     try {
       const blob = await generateBuilderTXT(store);
@@ -164,6 +187,10 @@ export default function ResumeBuilder() {
   };
 
   const handleAiSummary = async () => {
+    if (!isPro) {
+      setShowUpgradeModal(true);
+      return;
+    }
     setAiGenerating(true);
     try {
       const res = await generateAISummary({
@@ -180,6 +207,10 @@ export default function ResumeBuilder() {
   };
 
   const handleAiBullets = async (expId: string, title: string, company: string) => {
+    if (!isPro) {
+      setShowUpgradeModal(true);
+      return;
+    }
     if (!title || !company) {
         alert("Please enter job title and company first.");
         return;
@@ -204,8 +235,18 @@ export default function ResumeBuilder() {
     }
   };
 
+  const handleTemplateSelect = (tpl: any) => {
+    if (!isPro && !tpl.isFree) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    store.updateField('template_id', tpl.id);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
+      
       {/* Mobile Tab Switcher - show only on mobile */}
       <div className="flex lg:hidden mb-6 bg-white/5 rounded-xl p-1 border border-white/10">
         <button
@@ -242,13 +283,14 @@ export default function ResumeBuilder() {
             {saving ? (
               <span className="animate-pulse">Saving...</span>
             ) : lastSaved ? (
-              <span className="flex items-center gap-1"><CheckCircle className="text-brand-success" /> Last saved: {lastSaved}</span>
+              <span className="flex items-center gap-1"><CheckCircle className="text-brand-success" size={16} weight="fill" /> Last saved: {lastSaved}</span>
             ) : null}
           </div>
           
-          <button onClick={handleSharePublic} className="glass-card border-brand-warning/30 text-brand-warning !py-2 !px-4 flex items-center gap-2 font-bold transition-all hover:bg-brand-warning/10">
+          <button onClick={handleSharePublic} className={`glass-card border-brand-warning/30 text-brand-warning !py-2 !px-4 flex items-center gap-2 font-bold transition-all hover:bg-brand-warning/10 ${!isPro ? 'opacity-70' : ''}`}>
             <ShareNetwork size={20} weight={isSharing ? "fill" : "bold"} />
             {isSharing ? 'Copied!' : 'Share Link'}
+            {!isPro && <Sparkle size={14} weight="fill" className="text-brand-warning animate-pulse" />}
           </button>
 
           <button onClick={() => handleSave()} disabled={saving} className="glass-card !bg-white/5 border-white/10 px-4 py-2 text-sm flex items-center gap-2 hover:bg-white/10 transition-all text-white">
@@ -256,14 +298,16 @@ export default function ResumeBuilder() {
             {saving ? 'Saving...' : 'Save'}
           </button>
           
-          <button onClick={handleDownloadTxt} disabled={txtLoading || !store.full_name} className="glass-card border-white/10 !bg-white/5 text-text-muted !py-2 !px-4 flex items-center gap-2 font-bold transition-all hover:bg-white/10">
+          <button onClick={handleDownloadTxt} disabled={txtLoading || !store.full_name} className={`glass-card border-white/10 !bg-white/5 text-text-muted !py-2 !px-4 flex items-center gap-2 font-bold transition-all hover:bg-white/10 ${!isPro ? 'opacity-70' : ''}`}>
             {txtLoading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <FileTextIcon size={20} weight="fill" />}
             TXT
+            {!isPro && <Sparkle size={14} weight="fill" className="text-brand-warning animate-pulse" />}
           </button>
 
-          <button onClick={handleDownloadDocx} disabled={docLoading || !store.full_name} className="glass-card border-brand-primary/30 text-brand-primary !py-2 !px-4 flex items-center gap-2 font-bold transition-all hover:bg-brand-primary/10">
+          <button onClick={handleDownloadDocx} disabled={docLoading || !store.full_name} className={`glass-card border-brand-primary/30 text-brand-primary !py-2 !px-4 flex items-center gap-2 font-bold transition-all hover:bg-brand-primary/10 ${!isPro ? 'opacity-70' : ''}`}>
             {docLoading ? <div className="w-5 h-5 border-2 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin" /> : <FileDoc size={20} weight="fill" />}
             DOCX
+            {!isPro && <Sparkle size={14} weight="fill" className="text-brand-primary animate-pulse" />}
           </button>
 
           <button onClick={handleDownload} disabled={loading || !store.full_name} className="neon-button !py-2 !px-6 flex items-center gap-2">
@@ -286,13 +330,18 @@ export default function ResumeBuilder() {
                   {TEMPLATES.map((tpl) => (
                     <button
                       key={tpl.id}
-                      onClick={() => store.updateField('template_id', tpl.id)}
-                      className={`p-3 rounded-xl border text-left transition-all ${
+                      onClick={() => handleTemplateSelect(tpl)}
+                      className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden ${
                         store.template_id === tpl.id 
                           ? 'bg-brand-primary/10 border-brand-primary text-brand-primary' 
                           : 'bg-white/5 border-white/10 text-text-muted hover:border-white/20'
                       }`}
                     >
+                      {!isPro && !tpl.isFree && (
+                        <div className="absolute top-1 right-1">
+                          <Sparkle size={12} weight="fill" className="text-brand-primary animate-pulse" />
+                        </div>
+                      )}
                       <div className="text-sm font-bold mb-1">{tpl.name}</div>
                       <div className="text-[10px] leading-tight opacity-70">{tpl.desc}</div>
                     </button>

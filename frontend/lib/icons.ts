@@ -1,0 +1,51 @@
+// Optimized icon exports - tree-shakeable
+// Import only what you need from this file
+
+// Common icons used across the app
+export {
+  User,
+  SignOut,
+  SignIn,
+  UserPlus,
+  List,
+  Layout,
+  FileText,
+  House,
+  ChatText,
+  ArrowLeft,
+  Target,
+  MagicWand,
+  MicrophoneStage,
+  HandWaving,
+  ChartLine,
+  ShareNetwork,
+  Clock,
+  WarningCircle,
+  Warning,
+  Crown,
+  Printer,
+  X,
+  Check,
+  Copy,
+  ArrowRight,
+  FilePdf,
+  LinkedinLogo,
+  Envelope,
+  EnvelopeSimple,
+  EnvelopeOpen,
+  UploadSimple,
+  CheckCircle,
+  HourglassSimple,
+  Sparkle,
+  Buildings,
+  Rocket,
+  Shield,
+  CreditCard,
+  Calendar,
+  Lock,
+  Eye,
+  EyeSlash,
+} from '@phosphor-icons/react';
+
+// Usage in components:
+// import { User, SignOut } from '@/lib/icons';

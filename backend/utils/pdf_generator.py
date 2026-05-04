@@ -115,21 +115,140 @@ def generate_resume_pdf(data) -> bytes:
     doc.build(story)
     return buffer.getvalue()
 
-def generate_text_pdf(text: str) -> bytes:
+def generate_text_pdf(text: str, style: str = "Professional") -> bytes:
+    """Generate styled PDF based on resume style"""
     buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4, margin=0.5*inch)
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            topMargin=0.5*inch, bottomMargin=0.5*inch,
+                            leftMargin=0.7*inch, rightMargin=0.7*inch)
+
     styles = getSampleStyleSheet()
-    normal_style = styles['Normal']
-    normal_style.fontSize = 10
-    normal_style.leading = 14
-    
+
+    # Style-specific color schemes and formatting
+    style_config = {
+        "Professional": {
+            "primary_color": colors.HexColor('#2563eb'),
+            "secondary_color": colors.HexColor('#1e40af'),
+            "text_color": colors.HexColor('#1a1a2e'),
+            "header_size": 14,
+            "name_size": 22
+        },
+        "Creative": {
+            "primary_color": colors.HexColor('#ec4899'),
+            "secondary_color": colors.HexColor('#f97316'),
+            "text_color": colors.HexColor('#1f2937'),
+            "header_size": 16,
+            "name_size": 26
+        },
+        "Technical": {
+            "primary_color": colors.HexColor('#10b981'),
+            "secondary_color": colors.HexColor('#059669'),
+            "text_color": colors.HexColor('#111827'),
+            "header_size": 13,
+            "name_size": 20
+        },
+        "Executive": {
+            "primary_color": colors.HexColor('#7c3aed'),
+            "secondary_color": colors.HexColor('#6d28d9'),
+            "text_color": colors.HexColor('#0f172a'),
+            "header_size": 15,
+            "name_size": 24
+        }
+    }
+
+    config = style_config.get(style, style_config["Professional"])
+
+    # Custom Styles based on selected style
+    name_style = ParagraphStyle('Name',
+                                fontSize=config["name_size"],
+                                fontName='Helvetica-Bold',
+                                textColor=config["primary_color"],
+                                spaceAfter=12,
+                                alignment=1 if style == "Creative" else 0)
+
+    header_style = ParagraphStyle('Header',
+                                  fontSize=config["header_size"],
+                                  fontName='Helvetica-Bold',
+                                  textColor=config["primary_color"],
+                                  spaceBefore=14,
+                                  spaceAfter=8,
+                                  borderWidth=0 if style == "Technical" else 0,
+                                  borderColor=config["secondary_color"])
+
+    normal_style = ParagraphStyle('Normal',
+                                 fontSize=10,
+                                 leading=14,
+                                 textColor=config["text_color"],
+                                 fontName='Helvetica')
+
+    bold_style = ParagraphStyle('Bold',
+                               fontSize=10,
+                               leading=14,
+                               textColor=config["text_color"],
+                               fontName='Helvetica-Bold')
+
     story = []
-    for line in text.split('\n'):
-        if line.strip():
-            story.append(Paragraph(line, normal_style))
+    lines = text.split('\n')
+
+    # Add style indicator at top
+    style_badge = ParagraphStyle('Badge',
+                                fontSize=8,
+                                textColor=colors.white,
+                                backColor=config["primary_color"],
+                                fontName='Helvetica-Bold',
+                                alignment=2)
+
+    story.append(Paragraph(f"  {style} Style  ", style_badge))
+    story.append(Spacer(1, 10))
+
+    for line in lines:
+        line = line.strip()
+
+        if not line:
+            story.append(Spacer(1, 8))
+            continue
+
+        # Headers (## SECTION)
+        if line.startswith('##'):
+            header_text = line.replace('##', '').strip()
+            story.append(Paragraph(header_text, header_style))
+
+            # Add decorative line for certain styles
+            if style in ["Professional", "Executive"]:
+                story.append(HRFlowable(width="100%", thickness=1.5, color=config["primary_color"]))
+            elif style == "Creative":
+                story.append(HRFlowable(width="50%", thickness=2, color=config["secondary_color"]))
+
+            story.append(Spacer(1, 6))
+
+        # Name/Title (first line or all caps)
+        elif line.isupper() and len(line.split()) <= 4:
+            story.append(Paragraph(line, name_style))
+
+        # Bullet points
+        elif line.startswith('*') or line.startswith('-') or line.startswith('•'):
+            bullet_text = line.lstrip('*-• ').strip()
+            story.append(Paragraph(f"• {bullet_text}", normal_style))
+
+        # Bold text (lines with colons or starting with capital words)
+        elif ':' in line and len(line.split(':')[0].split()) <= 3:
+            parts = line.split(':', 1)
+            formatted = f"<b>{parts[0]}:</b> {parts[1] if len(parts) > 1 else ''}"
+            story.append(Paragraph(formatted, normal_style))
+
+        # Normal text
         else:
-            story.append(Spacer(1, 10))
-            
+            story.append(Paragraph(line, normal_style))
+
+    # Add footer with style branding
+    story.append(Spacer(1, 20))
+    story.append(HRFlowable(width="100%", thickness=0.5, color=colors.grey))
+    footer_style = ParagraphStyle('Footer',
+                                 fontSize=8,
+                                 textColor=colors.grey,
+                                 alignment=1)
+    story.append(Paragraph(f"Generated with AI Resume Analyzer - {style} Style", footer_style))
+
     doc.build(story)
     return buffer.getvalue()
 

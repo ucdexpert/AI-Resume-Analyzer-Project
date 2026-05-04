@@ -64,29 +64,49 @@ def analyze_resume_with_ai(resume_text: str, job_description: str = None, lang: 
             response_format={"type": "json_object"}
         )
         response_data = json.loads(chat_completion.choices[0].message.content)
+        
+        # Add usage info
+        tokens_used = chat_completion.usage.total_tokens if hasattr(chat_completion, 'usage') else 0
+        response_data["_tokens_used"] = tokens_used
+
+        # 1. Initialize with sensible defaults for ALL required fields
+        defaults = {
+            'overall_score': 0,
+            'score_breakdown': {
+                'formatting': 0, 'skills': 0, 'experience': 0, 'education': 0, 'summary': 0
+            },
+            'strengths': [],
+            'weaknesses': [],
+            'suggestions': [],
+            'ats_score': 0,
+            'ats_tips': [],
+            'missing_keywords': {
+                'technical_skills': [], 'soft_skills': [], 'industry_terms': []
+            },
+            'section_checker': [
+                {"name": "Contact Info", "exists": False},
+                {"name": "Summary", "exists": False},
+                {"name": "Experience", "exists": False},
+                {"name": "Education", "exists": False},
+                {"name": "Skills", "exists": False},
+                {"name": "Projects", "exists": False}
+            ]
+        }
+
+        # Merge AI response into defaults
+        final_response = {**defaults, **response_data}
+        response_data = final_response
 
         # Define allowed keys based on AnalysisResponse model
         allowed_keys = {
             'overall_score', 'score_breakdown', 'strengths', 'weaknesses', 'suggestions',
             'ats_score', 'ats_tips', 'section_checker', 'missing_keywords',
             'industry_feedback', 'salary_estimate', 'career_path', 'interview_questions',
-            'match_percentage', 'matched_keywords', 'raw_text'
+            'match_percentage', 'matched_keywords', 'raw_text', '_tokens_used'
         }
 
         # Filter out unexpected top-level keys
-        filtered_response_data = {k: v for k, v in response_data.items() if k in allowed_keys}
-        response_data = filtered_response_data
-        
-        # Ensure section_checker exists
-        if 'section_checker' not in response_data:
-            response_data['section_checker'] = [
-                {"name": "Contact Info", "exists": True},
-                {"name": "Summary", "exists": True},
-                {"name": "Experience", "exists": True},
-                {"name": "Education", "exists": True},
-                {"name": "Skills", "exists": True},
-                {"name": "Projects", "exists": True}
-            ]
+        response_data = {k: v for k, v in response_data.items() if k in allowed_keys}
 
         # Sanitize list fields to ensure they contain only strings
         list_fields = ['strengths', 'weaknesses', 'suggestions', 'ats_tips', 'matched_keywords']
@@ -177,6 +197,10 @@ def generate_cover_letter(resume_text: str, job_title: str, company_name: str):
         )
         response_data = json.loads(chat_completion.choices[0].message.content)
         
+        # Add usage info
+        tokens_used = chat_completion.usage.total_tokens if hasattr(chat_completion, 'usage') else 0
+        response_data["_tokens_used"] = tokens_used
+
         if 'cover_letter' in response_data:
             ls = response_data['cover_letter']
             if isinstance(ls, dict):
@@ -228,6 +252,10 @@ def generate_linkedin_summary(resume_text: str):
         )
         response_data = json.loads(chat_completion.choices[0].message.content)
         
+        # Add usage info
+        tokens_used = chat_completion.usage.total_tokens if hasattr(chat_completion, 'usage') else 0
+        response_data["_tokens_used"] = tokens_used
+
         if 'linkedin_summary' in response_data:
             if isinstance(response_data['linkedin_summary'], dict):
                 ls = response_data['linkedin_summary']
@@ -272,7 +300,13 @@ def improve_resume_section(section_text: str, section_name: str):
             model="llama-3.3-70b-versatile",
             response_format={"type": "json_object"}
         )
-        return json.loads(chat_completion.choices[0].message.content)
+        response_data = json.loads(chat_completion.choices[0].message.content)
+        
+        # Add usage info
+        tokens_used = chat_completion.usage.total_tokens if hasattr(chat_completion, 'usage') else 0
+        response_data["_tokens_used"] = tokens_used
+        
+        return response_data
     except Exception as e:
         if "429" in str(e) or "rate_limit" in str(e):
             raise HTTPException(
@@ -309,6 +343,10 @@ def get_interview_feedback(question: str, user_answer: str, resume_text: str):
             response_format={"type": "json_object"}
         )
         response_data = json.loads(chat_completion.choices[0].message.content)
+        
+        # Add usage info
+        tokens_used = chat_completion.usage.total_tokens if hasattr(chat_completion, 'usage') else 0
+        response_data["_tokens_used"] = tokens_used
         
         if 'score' in response_data:
             try:
@@ -359,7 +397,13 @@ def generate_bullet_points(job_title: str, company: str, current_description: st
             model="llama-3.3-70b-versatile",
             response_format={"type": "json_object"}
         )
-        return json.loads(chat_completion.choices[0].message.content)
+        response_data = json.loads(chat_completion.choices[0].message.content)
+        
+        # Add usage info
+        tokens_used = chat_completion.usage.total_tokens if hasattr(chat_completion, 'usage') else 0
+        response_data["_tokens_used"] = tokens_used
+        
+        return response_data
     except Exception as e:
         if "429" in str(e) or "rate_limit" in str(e):
             raise HTTPException(
@@ -374,36 +418,89 @@ def rewrite_resume(resume_text: str, style: str):
     Rewrites the entire resume based on a selected style.
     Styles: Professional, Creative, Technical, Executive
     """
+
+    # Style-specific instructions
+    style_instructions = {
+        "Professional": """
+        - Use formal, corporate language
+        - Focus on achievements and responsibilities
+        - Use action verbs: Led, Managed, Developed, Implemented
+        - Keep tone balanced and objective
+        - Emphasize teamwork and collaboration
+        """,
+        "Creative": """
+        - Use engaging, personality-driven language
+        - Show passion and enthusiasm
+        - Use dynamic verbs: Crafted, Designed, Innovated, Transformed
+        - Add a personal touch while staying professional
+        - Highlight creativity and problem-solving
+        """,
+        "Technical": """
+        - Use precise, skill-focused language
+        - Include technical terms and metrics
+        - Use data-driven verbs: Optimized, Engineered, Architected, Debugged
+        - Quantify everything possible (numbers, percentages, metrics)
+        - Focus on technologies and methodologies
+        """,
+        "Executive": """
+        - Use leadership-oriented language
+        - Focus on strategic impact and business results
+        - Use high-level verbs: Spearheaded, Orchestrated, Championed, Drove
+        - Emphasize vision, strategy, and ROI
+        - Highlight team leadership and organizational impact
+        """
+    }
+
+    style_guide = style_instructions.get(style, style_instructions["Professional"])
+
     prompt = f"""
-    You are a master resume rewriter. 
-    Rewrite ONLY the following resume using 
-    the "{style}" style. Do NOT invent any 
-    new information. Keep all facts, 
-    companies, dates, and skills exactly 
-    as provided. Only improve the language 
-    and formatting.
-    
+    You are a master resume rewriter specializing in the "{style}" style.
+
+    STYLE GUIDELINES FOR {style.upper()}:
+    {style_guide}
+
     ORIGINAL RESUME TO REWRITE:
     {resume_text}
-    
-    Format with clear sections:
-    ## SECTION NAME
-    Content here
-    
-    RULES:
-    - Keep ALL original information accurate
-    - Do NOT add fake experience or skills
-    - Do NOT change names, dates, companies
-    - Maximum 500 words
-    - Return ONLY the rewritten resume text
-    - No explanations, no JSON
+
+    FORMATTING REQUIREMENTS:
+    - Use ## for section headers (e.g., ## CONTACT INFORMATION, ## PROFESSIONAL SUMMARY)
+    - Use bullet points (•) for lists
+    - Keep name in ALL CAPS on first line
+    - Sections: CONTACT INFORMATION, PROFESSIONAL SUMMARY, TECHNICAL SKILLS, EXPERIENCE/PROJECTS, EDUCATION
+
+    CRITICAL RULES:
+    - Keep ALL original information accurate (names, dates, companies, skills)
+    - Do NOT invent fake experience or skills
+    - Do NOT change factual details
+    - ONLY improve language, tone, and presentation according to {style} style
+    - Maximum 600 words
+    - Return ONLY the rewritten resume text (no JSON, no explanations)
+
+    Example format:
+    ## CONTACT INFORMATION
+    FULL NAME
+    Contact details here
+
+    ## PROFESSIONAL SUMMARY
+    Summary text here
+
+    ## TECHNICAL SKILLS
+    • Skill category: skills here
+    • Another category: more skills
     """
+
     try:
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
             model="llama-3.3-70b-versatile",
         )
-        return {"rewritten_text": chat_completion.choices[0].message.content}
+        # Add usage info
+        tokens_used = chat_completion.usage.total_tokens if hasattr(chat_completion, 'usage') else 0
+        
+        return {
+            "rewritten_text": chat_completion.choices[0].message.content,
+            "_tokens_used": tokens_used
+        }
     except Exception as e:
         if "429" in str(e) or "rate_limit" in str(e):
             raise HTTPException(
@@ -442,7 +539,13 @@ def match_resume_to_jd(resume_text: str, job_description: str):
             model="llama-3.3-70b-versatile",
             response_format={"type": "json_object"}
         )
-        return json.loads(chat_completion.choices[0].message.content)
+        response_data = json.loads(chat_completion.choices[0].message.content)
+        
+        # Add usage info
+        tokens_used = chat_completion.usage.total_tokens if hasattr(chat_completion, 'usage') else 0
+        response_data["_tokens_used"] = tokens_used
+        
+        return response_data
     except Exception as e:
         if "429" in str(e) or "rate_limit" in str(e):
             raise HTTPException(
@@ -477,7 +580,13 @@ def match_resume_to_jobs(resume_text: str):
             model="llama-3.3-70b-versatile",
             response_format={"type": "json_object"}
         )
-        return json.loads(chat_completion.choices[0].message.content)
+        response_data = json.loads(chat_completion.choices[0].message.content)
+        
+        # Add usage info
+        tokens_used = chat_completion.usage.total_tokens if hasattr(chat_completion, 'usage') else 0
+        response_data["_tokens_used"] = tokens_used
+        
+        return response_data
     except Exception as e:
         if "429" in str(e) or "rate_limit" in str(e):
             raise HTTPException(
@@ -486,5 +595,3 @@ def match_resume_to_jobs(resume_text: str):
             )
         print(f"Error matching jobs: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
-

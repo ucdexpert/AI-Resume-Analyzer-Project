@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import useAuthStore from "@/stores/useAuthStore";
 import { motion } from "framer-motion";
-import { User, Envelope, Calendar, Shield, CreditCard, Clock, Warning } from "@phosphor-icons/react";
+import { User, Envelope, Calendar, Shield, CreditCard, Clock, Warning, CheckCircle } from "@phosphor-icons/react";
 import api from "@/lib/api";
+import Link from "next/link";
 
 export default function ProfilePage() {
   const { user, isLoggedIn } = useAuthStore();
@@ -42,42 +43,66 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen py-10 md:py-20 px-4 md:px-6">
+    <div className="min-h-screen py-6 sm:py-10 md:py-20 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
           {/* Left: User Card */}
-          <div className="lg:col-span-1 space-y-6">
-            <div className="glass-card p-8 text-center">
-              <div className="w-24 h-24 rounded-full bg-brand-primary/20 flex items-center justify-center text-brand-primary mx-auto mb-6 border-2 border-brand-primary/30">
-                <User size={48} weight="fill" />
+          <div className="lg:col-span-1 space-y-4 sm:space-y-6">
+            <div className="glass-card p-4 sm:p-6 md:p-8 text-center">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-brand-primary/20 flex items-center justify-center text-brand-primary mx-auto mb-4 sm:mb-6 border-2 border-brand-primary/30">
+                <User size={40} weight="fill" className="sm:hidden" />
+                <User size={48} weight="fill" className="hidden sm:block" />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-1">{user?.name}</h2>
-              <div className="flex items-center justify-center gap-2 mb-6">
-                <p className="text-text-muted text-sm">{user?.email}</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 truncate px-2">{user?.name}</h2>
+              <div className="flex items-center justify-center gap-2 mb-4 sm:mb-6 px-2">
+                <p className="text-text-muted text-xs sm:text-sm truncate">{user?.email}</p>
                 {user?.is_verified && (
-                    <CheckCircle size={16} className="text-brand-success" weight="fill" title="Verified Account" />
+                    <span title="Verified Account">
+                      <CheckCircle size={14} className="text-brand-success flex-shrink-0 sm:w-4 sm:h-4" weight="fill" />
+                    </span>
                 )}
               </div>
-              
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
-                    <span className="text-xs text-gray-400 uppercase font-bold">Account Plan</span>
-                    <span className="text-xs bg-brand-primary/20 text-brand-primary px-2 py-1 rounded font-bold uppercase">Free</span>
+
+              <div className="flex flex-col gap-2 sm:gap-3">
+                <div className="flex items-center justify-between p-2 sm:p-3 bg-white/5 rounded-xl border border-white/10">
+                    <span className="text-[10px] sm:text-xs text-gray-400 uppercase font-bold">Account Plan</span>
+                    <span className={`text-[10px] sm:text-xs px-2 py-1 rounded font-bold uppercase ${
+                      user?.plan?.toLowerCase() === 'pro'
+                        ? 'bg-brand-primary/20 text-brand-primary'
+                        : 'bg-white/10 text-text-muted'
+                    }`}>
+                      {user?.plan || 'Free'}
+                    </span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
-                    <span className="text-xs text-gray-400 uppercase font-bold">Member Since</span>
-                    <span className="text-xs text-white font-bold">May 2026</span>
+                <div className="flex items-center justify-between p-2 sm:p-3 bg-white/5 rounded-xl border border-white/10">
+                    <span className="text-[10px] sm:text-xs text-gray-400 uppercase font-bold">Member Since</span>
+                    <span className="text-[10px] sm:text-xs text-white font-bold">May 2026</span>
                 </div>
               </div>
             </div>
 
-            <div className="glass-card p-6">
-               <h3 className="font-bold mb-4 flex items-center gap-2">
-                 <Shield size={20} className="text-brand-success" />
+            <div className="glass-card p-4 sm:p-6">
+               <h3 className="font-bold mb-3 sm:mb-4 flex items-center gap-2 text-sm sm:text-base">
+                 <Shield size={18} className="text-brand-success sm:w-5 sm:h-5" />
                  Account Security
                </h3>
-               <button className="w-full text-left p-3 rounded-xl hover:bg-white/5 text-sm transition-all border border-white/5">Change Password</button>
-               <button className="w-full text-left p-3 rounded-xl hover:bg-white/5 text-sm transition-all border border-white/5 mt-2">Two-Factor Auth</button>
+               <button className="w-full text-left p-2 sm:p-3 rounded-xl hover:bg-white/5 text-xs sm:text-sm transition-all border border-white/5">Change Password</button>
+               <button className="w-full text-left p-2 sm:p-3 rounded-xl hover:bg-white/5 text-xs sm:text-sm transition-all border border-white/5 mt-2">Two-Factor Auth</button>
+            </div>
+
+            <div className="glass-card p-4 sm:p-6">
+               <h3 className="font-bold mb-3 sm:mb-4 flex items-center gap-2 text-sm sm:text-base">
+                 <CreditCard size={18} className="text-brand-primary sm:w-5 sm:h-5" />
+                 Billing & Subscriptions
+               </h3>
+               <Link href="/profile/billing" className="block w-full text-left p-2 sm:p-3 rounded-xl hover:bg-white/5 text-xs sm:text-sm transition-all border border-white/5 flex items-center justify-between">
+                  <span>Billing History</span>
+                  <Clock size={14} className="text-text-muted sm:w-4 sm:h-4" />
+               </Link>
+               <Link href="/pricing" className="block w-full text-left p-2 sm:p-3 rounded-xl hover:bg-white/5 text-xs sm:text-sm transition-all border border-white/5 mt-2 flex items-center justify-between">
+                  <span>Upgrade Plan</span>
+                  <div className="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></div>
+               </Link>
             </div>
           </div>
 

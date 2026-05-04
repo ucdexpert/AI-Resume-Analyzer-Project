@@ -7,13 +7,27 @@ import { translations } from '../../lib/translations';
 
 interface CareerInsightsProps {
   salary?: { range: string, currency: string, basis: string };
-  careerPath?: { short_term: string, long_term: string };
+  careerPath?: { short_term: string | string[], long_term: string | string[] };
   industryFeedback?: string;
 }
 
 export default function CareerInsights({ salary, careerPath, industryFeedback }: CareerInsightsProps) {
   const { lang } = useLanguageStore();
   const t = translations[lang];
+
+  // Helper to render career path text
+  const renderCareerPath = (path: string | string[]) => {
+    if (Array.isArray(path)) {
+      return (
+        <ul className="list-disc list-inside space-y-1">
+          {path.map((item, i) => (
+            <li key={i} className="text-text-primary">{item}</li>
+          ))}
+        </ul>
+      );
+    }
+    return <p className="text-text-primary">{path}</p>;
+  };
 
   return (
     <div className="grid md:grid-cols-2 gap-8">
@@ -45,11 +59,11 @@ export default function CareerInsights({ salary, careerPath, industryFeedback }:
           <div className="space-y-4">
             <div>
               <p className="text-xs font-bold text-brand-success uppercase tracking-wider mb-1">{t.shortTerm}</p>
-              <p className="text-text-primary">{careerPath.short_term}</p>
+              {renderCareerPath(careerPath.short_term)}
             </div>
             <div className="pt-4 border-t border-white/5">
               <p className="text-xs font-bold text-brand-success uppercase tracking-wider mb-1">{t.longTerm}</p>
-              <p className="text-text-primary">{careerPath.long_term}</p>
+              {renderCareerPath(careerPath.long_term)}
             </div>
           </div>
         </div>

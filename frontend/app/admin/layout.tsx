@@ -5,7 +5,8 @@ import Link from 'next/link'
 import {
   ChartBar, Users, CreditCard, 
   ChatText, Gear, House, SignOut,
-  Shield, List, X, ChatCircleText
+  Shield, List, X, ChatCircleText,
+  CheckCircle
 } from '@phosphor-icons/react'
 
 const navItems = [
@@ -14,6 +15,7 @@ const navItems = [
   { href: '/admin/analytics', label: 'Analytics', icon: ChartBar },
   { href: '/admin/communication', label: 'Communication', icon: ChatCircleText },
   { href: '/admin/subscriptions', label: 'Payments', icon: CreditCard },
+  { href: '/admin/manual-payments', label: 'Manual Approvals', icon: CheckCircle },
   { href: '/admin/support', label: 'Support', icon: ChatText },
   { href: '/admin/settings', label: 'Settings', icon: Gear },
 ]

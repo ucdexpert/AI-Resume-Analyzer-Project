@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Sparkle, Crown, Buildings, Rocket, Clock } from '@phosphor-icons/react';
 import Navbar from '../../components/shared/Navbar';
+import PaymentProofModal from '../../components/payment/PaymentProofModal';
 
 const PLANS = [
   {
@@ -13,6 +14,7 @@ const PLANS = [
     icon: <Rocket size={32} weight="duotone" className="text-text-muted" />,
     features: [
       '3 AI Analyses per month',
+      '3 LinkedIn Summary Generations',
       'Basic ATS Score',
       '1 Resume Template',
       'Standard PDF Export',
@@ -29,6 +31,7 @@ const PLANS = [
     icon: <Crown size={32} weight="duotone" className="text-brand-warning" />,
     features: [
       'Unlimited AI Analyses',
+      'Unlimited LinkedIn Summaries',
       'Flagship Llama 3.3 Access',
       '10+ Professional Templates',
       'AI Resume Rewriter (All Styles)',
@@ -58,30 +61,46 @@ const PLANS = [
 ];
 
 export default function PricingPage() {
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<{ name: string; price: string } | null>(null);
+
+  const openPaymentModal = (planName: string, price: string) => {
+    setSelectedPlan({ name: planName, price: price });
+    setIsPaymentModalOpen(true);
+  };
+
+  const closePaymentModal = () => {
+    setIsPaymentModalOpen(false);
+    setSelectedPlan(null);
+  };
   return (
     <div className="min-h-screen bg-bg-dark">
       <Navbar />
-      
-      <div className="container mx-auto px-6 py-24">
-        <div className="text-center max-w-3xl mx-auto mb-20">
+
+      <div className="container mx-auto px-4 sm:px-6 py-16 sm:py-20 md:py-24">
+        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16 md:mb-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h1 className="text-5xl md:text-6xl font-heading font-bold mb-6">Simple, Transparent <span className="text-brand-primary">Pricing</span></h1>
-            <p className="text-xl text-text-muted">Choose the plan that fits your career goals. No hidden fees.</p>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading font-bold mb-4 sm:mb-6 px-4">
+              Simple, Transparent <span className="text-brand-primary">Pricing</span>
+            </h1>
+            <p className="text-base sm:text-lg md:text-xl text-text-muted px-4">
+              Choose the plan that fits your career goals. No hidden fees.
+            </p>
           </motion.div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
           {PLANS.map((plan, idx) => (
             <motion.div
               key={plan.name}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className={`glass-card p-10 flex flex-col relative overflow-hidden ${
-                plan.highlight ? 'border-brand-primary/50 shadow-[0_0_40px_rgba(0,229,255,0.1)]' : 'border-white/5'
+              className={`glass-card p-6 sm:p-8 md:p-10 flex flex-col relative overflow-hidden ${
+                plan.highlight ? 'border-brand-primary/50 shadow-[0_0_40px_rgba(0,229,255,0.1)] md:scale-105' : 'border-white/5'
               }`}
             >
               {plan.highlight && (
@@ -92,42 +111,49 @@ export default function PricingPage() {
                 </div>
               )}
 
-              <div className="mb-8">
-                <div className="mb-4">{plan.icon}</div>
-                <h3 className="text-2xl font-heading font-bold text-white mb-2">{plan.name}</h3>
+              <div className="mb-6 sm:mb-8">
+                <div className="mb-3 sm:mb-4">{plan.icon}</div>
+                <h3 className="text-xl sm:text-2xl font-heading font-bold text-white mb-2">{plan.name}</h3>
                 <p className="text-sm text-text-muted">{plan.desc}</p>
               </div>
 
-              <div className="mb-8">
+              <div className="mb-6 sm:mb-8">
                 <div className="flex items-baseline gap-1">
-                    <span className="text-lg font-bold text-text-muted">PKR</span>
-                    <span className="text-5xl font-black text-white">{plan.price}</span>
-                    <span className="text-text-muted">{plan.period}</span>
+                    <span className="text-base sm:text-lg font-bold text-text-muted">PKR</span>
+                    <span className="text-4xl sm:text-5xl font-black text-white">{plan.price}</span>
+                    <span className="text-sm sm:text-base text-text-muted">{plan.period}</span>
                 </div>
               </div>
 
-              <div className="flex-1 space-y-4 mb-10">
+              <div className="flex-1 space-y-3 sm:space-y-4 mb-8 sm:mb-10">
                 {plan.features.map((feature) => (
-                  <div key={feature} className="flex items-start gap-3">
-                    <div className="mt-1 bg-brand-primary/20 rounded-full p-0.5">
+                  <div key={feature} className="flex items-start gap-2 sm:gap-3">
+                    <div className="mt-1 bg-brand-primary/20 rounded-full p-0.5 flex-shrink-0">
                         <Check size={12} className="text-brand-primary" weight="bold" />
                     </div>
-                    <span className="text-sm text-text-muted">{feature}</span>
+                    <span className="text-xs sm:text-sm text-text-muted leading-relaxed">{feature}</span>
                   </div>
                 ))}
               </div>
 
-              <button 
-                className={`w-full py-4 rounded-xl font-bold transition-all ${
-                    plan.highlight 
-                    ? 'bg-brand-primary text-black hover:bg-white shadow-[0_0_20px_rgba(0,229,255,0.3)]' 
-                    : 'bg-white/5 text-white border border-white/10 hover:bg-white/10'
+              <button
+                onClick={() => {
+                  if (plan.name === 'Pro') {
+                    openPaymentModal(plan.name, plan.price);
+                  } else if (plan.name === 'Enterprise') {
+                    console.log("Contact Sales for Enterprise plan");
+                  }
+                }}
+                className={`w-full py-3 sm:py-4 rounded-xl font-bold transition-all text-sm sm:text-base ${
+                  plan.highlight
+                  ? 'bg-brand-primary text-black hover:bg-white shadow-[0_0_20px_rgba(0,229,255,0.3)]'
+                  : 'bg-white/5 text-white border border-white/10 hover:bg-white/10'
                 }`}
               >
                 {plan.button}
               </button>
-              
-              {plan.name !== 'Free' && (
+
+              {plan.name === 'Enterprise' && (
                 <div className="mt-6 p-4 rounded-2xl bg-brand-primary/5 border border-brand-primary/10 text-center relative overflow-hidden group">
                     <div className="absolute inset-0 bg-brand-primary/5 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                     <p className="text-[10px] text-brand-primary font-black uppercase tracking-[0.2em] relative z-10 flex items-center justify-center gap-2">
@@ -155,6 +181,15 @@ export default function PricingPage() {
             </div>
         </div>
       </div>
+
+      {selectedPlan && (
+        <PaymentProofModal
+          isOpen={isPaymentModalOpen}
+          onClose={closePaymentModal}
+          planName={selectedPlan.name}
+          price={selectedPlan.price}
+        />
+      )}
     </div>
   );
 }

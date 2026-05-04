@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /profile/
+
+# Sitemap
+Sitemap: https://skillsense.ai/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 1

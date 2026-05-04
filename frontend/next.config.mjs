@@ -1,12 +1,50 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: false,
-  eslint: {
-    ignoreDuringBuilds: true,
+  // Enable SWC minification for faster builds
+  swcMinify: true,
+
+  // Compiler optimizations
+  compiler: {
+    // Remove console logs in production
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
   },
-  typescript: {
-    ignoreBuildErrors: true,
+
+  // Optimize images
+  images: {
+    domains: ['localhost'],
+    formats: ['image/avif', 'image/webp'],
   },
+
+  // Enable experimental features for better performance
+  experimental: {
+    // optimizeCss: true, // Disabled - requires critters package
+    optimizePackageImports: ['@phosphor-icons/react', 'framer-motion', 'recharts'],
+  },
+
+  // Webpack optimizations
+  webpack: (config, { dev, isServer }) => {
+    // Production optimizations
+    if (!dev) {
+      config.optimization = {
+        ...config.optimization,
+        usedExports: true,
+        sideEffects: false,
+      };
+    }
+
+    return config;
+  },
+
+  // Reduce build output
+  productionBrowserSourceMaps: false,
+
+  // Enable React strict mode
+  reactStrictMode: true,
+
+  // Optimize fonts
+  optimizeFonts: true,
 };
 
 export default nextConfig;

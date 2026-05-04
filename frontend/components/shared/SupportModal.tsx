@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChatText, X, PaperPlaneTilt, CheckCircle, Warning, Clock, ArrowLeft, chatText } from '@phosphor-icons/react'
+import { ChatText, X, PaperPlaneTilt, CheckCircle, Warning, Clock, ArrowLeft } from '@phosphor-icons/react'
 import api from '@/lib/api'
 
 interface SupportModalProps {

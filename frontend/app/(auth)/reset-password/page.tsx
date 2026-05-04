@@ -1,7 +1,6 @@
 'use client'
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
 import { Lock, CheckCircle, Warning, ArrowRight } from '@phosphor-icons/react'
 import Link from 'next/link'
 import api from '@/lib/api'

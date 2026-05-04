@@ -9,6 +9,7 @@ from middleware.auth import get_current_user
 from utils.db import get_db
 from utils.notifications import send_analysis_email
 from utils.pdf_generator import generate_analysis_report_pdf
+from utils.api_logger import log_api_usage
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -27,11 +28,16 @@ class ReportRequest(BaseModel):
 
 @router.post("/match-job")
 @limiter.limit("10/minute")
-async def match_job_endpoint(request: Request, req: MatchJobRequest):
+async def match_job_endpoint(request: Request, req: MatchJobRequest, background_tasks: BackgroundTasks, current_user=Depends(get_current_user)):
     try:
         result = match_resume_to_jd(req.resume_text, req.job_description)
         if not result:
             raise HTTPException(status_code=500, detail="Failed to match job.")
+        
+        # Log usage
+        tokens = result.pop("_tokens_used", 0)
+        background_tasks.add_task(log_api_usage, current_user["id"], "/match-job", tokens)
+        
         return result
     except HTTPException as e:
         raise e
@@ -40,11 +46,16 @@ async def match_job_endpoint(request: Request, req: MatchJobRequest):
 
 @router.post("/job-matches")
 @limiter.limit("10/minute")
-async def job_matches_endpoint(request: Request, req: JobMatchesRequest):
+async def job_matches_endpoint(request: Request, req: JobMatchesRequest, background_tasks: BackgroundTasks, current_user=Depends(get_current_user)):
     try:
         result = match_resume_to_jobs(req.resume_text)
         if not result:
             raise HTTPException(status_code=500, detail="Failed to find job matches.")
+        
+        # Log usage
+        tokens = result.pop("_tokens_used", 0)
+        background_tasks.add_task(log_api_usage, current_user["id"], "/job-matches", tokens)
+        
         return result
     except HTTPException as e:
         raise e
@@ -83,6 +94,8 @@ async def analyze_resume(
     user_data = await db.fetchrow("SELECT plan FROM users WHERE id = $1", current_user["id"])
     actual_count = await db.fetchval("SELECT COUNT(*) FROM analysis WHERE user_id = $1", current_user["id"])
     
+    print(f"DEBUG: Limit Check - User: {current_user['email']} | Plan: {user_data['plan']} | Count: {actual_count}")
+
     # 3. Extract Text
     content = await file.read()
     if len(content) > 5 * 1024 * 1024:  # 5MB limit
@@ -104,12 +117,21 @@ async def analyze_resume(
     """, current_user["id"], text)
 
     if existing_analysis_record:
+        print(f"DEBUG: Cache Hit for {current_user['email']} - Bypassing limit")
         res = dict(existing_analysis_record)
-        json_fields = ['score_breakdown', 'ats_tips', 'strengths', 'weaknesses', 'suggestions', 'missing_keywords', 'salary_estimate', 'career_path', 'interview_questions']
-        for field in json_fields:
-            if res.get(field):
-                try: res[field] = json.loads(res[field]) if isinstance(res[field], str) else res[field]
-                except: pass
+        
+        # Robustly parse JSON and handle NULL values
+        res['score_breakdown'] = json.loads(res['score_breakdown']) if isinstance(res.get('score_breakdown'), str) else (res.get('score_breakdown') or {'formatting': 0, 'skills': 0, 'experience': 0, 'education': 0, 'summary': 0})
+        res['ats_tips'] = json.loads(res['ats_tips']) if isinstance(res.get('ats_tips'), str) else (res.get('ats_tips') or [])
+        res['strengths'] = json.loads(res['strengths']) if isinstance(res.get('strengths'), str) else (res.get('strengths') or [])
+        res['weaknesses'] = json.loads(res['weaknesses']) if isinstance(res.get('weaknesses'), str) else (res.get('weaknesses') or [])
+        res['suggestions'] = json.loads(res['suggestions']) if isinstance(res.get('suggestions'), str) else (res.get('suggestions') or [])
+        res['missing_keywords'] = json.loads(res['missing_keywords']) if isinstance(res.get('missing_keywords'), str) else (res.get('missing_keywords') or {'technical_skills': [], 'soft_skills': [], 'industry_terms': []})
+        res['salary_estimate'] = json.loads(res['salary_estimate']) if isinstance(res.get('salary_estimate'), str) else res.get('salary_estimate')
+        res['career_path'] = json.loads(res['career_path']) if isinstance(res.get('career_path'), str) else res.get('career_path')
+        res['interview_questions'] = json.loads(res['interview_questions']) if isinstance(res.get('interview_questions'), str) else (res.get('interview_questions') or [])
+        res['matched_keywords'] = json.loads(res['matched_keywords']) if isinstance(res.get('matched_keywords'), str) else (res.get('matched_keywords') or [])
+
         res['id'] = str(res['id'])
         res['user_id'] = str(res['user_id'])
         res['resume_id'] = str(res['resume_id'])
@@ -117,6 +139,7 @@ async def analyze_resume(
 
     # 5. NOW enforce limit for NEW analyses
     if user_data["plan"] == "free" and actual_count >= 3:
+        print(f"DEBUG: Limit REAHED for {current_user['email']} - Blocking analysis")
         raise HTTPException(status_code=403, detail="Free limit reached (3/3). Please upgrade to Pro for unlimited analyses.")
 
     # 6. AI Analysis
@@ -141,6 +164,10 @@ async def analyze_resume(
         """, current_user["id"], resume_id, analysis_result.get("overall_score"), json.dumps(analysis_result.get("score_breakdown")), analysis_result.get("ats_score"), json.dumps(analysis_result.get("ats_tips")), json.dumps(analysis_result.get("strengths")), json.dumps(analysis_result.get("weaknesses")), json.dumps(analysis_result.get("suggestions")), json.dumps(analysis_result.get("missing_keywords")), analysis_result.get("industry_feedback"), json.dumps(analysis_result.get("salary_estimate")), json.dumps(analysis_result.get("career_path")), json.dumps(analysis_result.get("interview_questions")))
         
         analysis_result["id"] = str(analysis_id)
+        
+        # Log API Usage
+        tokens = analysis_result.pop("_tokens_used", 0)
+        background_tasks.add_task(log_api_usage, current_user["id"], "/analyze", tokens)
         
         # Increment legacy counter for compatibility
         await db.execute("UPDATE users SET analysis_count = analysis_count + 1 WHERE id = $1", current_user["id"])
@@ -194,18 +221,19 @@ async def get_shared_analysis(
         raise HTTPException(status_code=404, detail="Analysis not found or link expired")
     
     res = dict(row)
-    json_fields = [
-        'score_breakdown', 'ats_tips', 'strengths', 'weaknesses', 
-        'suggestions', 'missing_keywords', 'salary_estimate', 
-        'career_path', 'interview_questions'
-    ]
-    for field in json_fields:
-        if res.get(field):
-            try:
-                res[field] = json.loads(res[field]) if isinstance(res[field], str) else res[field]
-            except:
-                pass
     
+    # Robustly parse JSON and handle NULL values
+    res['score_breakdown'] = json.loads(res['score_breakdown']) if isinstance(res.get('score_breakdown'), str) else (res.get('score_breakdown') or {'formatting': 0, 'skills': 0, 'experience': 0, 'education': 0, 'summary': 0})
+    res['ats_tips'] = json.loads(res['ats_tips']) if isinstance(res.get('ats_tips'), str) else (res.get('ats_tips') or [])
+    res['strengths'] = json.loads(res['strengths']) if isinstance(res.get('strengths'), str) else (res.get('strengths') or [])
+    res['weaknesses'] = json.loads(res['weaknesses']) if isinstance(res.get('weaknesses'), str) else (res.get('weaknesses') or [])
+    res['suggestions'] = json.loads(res['suggestions']) if isinstance(res.get('suggestions'), str) else (res.get('suggestions') or [])
+    res['missing_keywords'] = json.loads(res['missing_keywords']) if isinstance(res.get('missing_keywords'), str) else (res.get('missing_keywords') or {'technical_skills': [], 'soft_skills': [], 'industry_terms': []})
+    res['salary_estimate'] = json.loads(res['salary_estimate']) if isinstance(res.get('salary_estimate'), str) else res.get('salary_estimate')
+    res['career_path'] = json.loads(res['career_path']) if isinstance(res.get('career_path'), str) else res.get('career_path')
+    res['interview_questions'] = json.loads(res['interview_questions']) if isinstance(res.get('interview_questions'), str) else (res.get('interview_questions') or [])
+    res['matched_keywords'] = json.loads(res['matched_keywords']) if isinstance(res.get('matched_keywords'), str) else (res.get('matched_keywords') or [])
+
     res['id'] = str(res['id'])
     res['user_id'] = str(res['user_id'])
     res['resume_id'] = str(res['resume_id'])
@@ -227,17 +255,19 @@ async def get_analysis_history(
     history = []
     for row in rows:
         res = dict(row)
-        json_fields = [
-            'score_breakdown', 'ats_tips', 'strengths', 'weaknesses', 
-            'suggestions', 'missing_keywords', 'salary_estimate', 
-            'career_path', 'interview_questions'
-        ]
-        for field in json_fields:
-            if res.get(field):
-                try:
-                    res[field] = json.loads(res[field]) if isinstance(res[field], str) else res[field]
-                except:
-                    pass
+        
+        # Robustly parse JSON and handle NULL values
+        res['score_breakdown'] = json.loads(res['score_breakdown']) if isinstance(res.get('score_breakdown'), str) else (res.get('score_breakdown') or {'formatting': 0, 'skills': 0, 'experience': 0, 'education': 0, 'summary': 0})
+        res['ats_tips'] = json.loads(res['ats_tips']) if isinstance(res.get('ats_tips'), str) else (res.get('ats_tips') or [])
+        res['strengths'] = json.loads(res['strengths']) if isinstance(res.get('strengths'), str) else (res.get('strengths') or [])
+        res['weaknesses'] = json.loads(res['weaknesses']) if isinstance(res.get('weaknesses'), str) else (res.get('weaknesses') or [])
+        res['suggestions'] = json.loads(res['suggestions']) if isinstance(res.get('suggestions'), str) else (res.get('suggestions') or [])
+        res['missing_keywords'] = json.loads(res['missing_keywords']) if isinstance(res.get('missing_keywords'), str) else (res.get('missing_keywords') or {'technical_skills': [], 'soft_skills': [], 'industry_terms': []})
+        res['salary_estimate'] = json.loads(res['salary_estimate']) if isinstance(res.get('salary_estimate'), str) else res.get('salary_estimate')
+        res['career_path'] = json.loads(res['career_path']) if isinstance(res.get('career_path'), str) else res.get('career_path')
+        res['interview_questions'] = json.loads(res['interview_questions']) if isinstance(res.get('interview_questions'), str) else (res.get('interview_questions') or [])
+        res['matched_keywords'] = json.loads(res['matched_keywords']) if isinstance(res.get('matched_keywords'), str) else (res.get('matched_keywords') or [])
+
         res['id'] = str(res['id'])
         res['user_id'] = str(res['user_id'])
         res['resume_id'] = str(res['resume_id'])

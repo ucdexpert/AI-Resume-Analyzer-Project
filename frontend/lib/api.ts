@@ -146,9 +146,9 @@ export const generateResumePDF = async (data: any) => {
   }
 };
 
-export const generateImprovedPDF = async (text: string, filename: string) => {
+export const generateImprovedPDF = async (text: string, filename: string, style: string = 'Professional') => {
   try {
-    const response = await api.post(`/generate-improved-pdf`, { text, filename }, {
+    const response = await api.post(`/generate-improved-pdf`, { text, filename, style }, {
       responseType: 'blob',
     });
     return response.data;
@@ -280,6 +280,15 @@ export const shareBuilderResume = async () => {
     return response.data;
   } catch (error: any) {
     throw new Error(error.response?.data?.detail || 'Failed to share resume');
+  }
+};
+
+export const getManualPaymentHistory = async () => {
+  try {
+    const response = await api.get('/manual-payments/history');
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.detail || 'Failed to fetch payment history');
   }
 };
 

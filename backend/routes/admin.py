@@ -4,7 +4,7 @@ from models.admin import *
 from utils.db import get_db
 from utils.hash import hash_password, verify_password
 from utils.jwt import create_access_token
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import json
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -537,6 +537,115 @@ async def refund_payment(
     """, payment["user_id"])
     
     return {"message": "Payment refunded and user downgraded to free"}
+
+
+# ═══════════════════════════════════════
+# MANUAL PAYMENTS
+# ═══════════════════════════════════════
+
+@router.get("/manual-payments", response_model=List[ManualPaymentProofItem])
+async def get_manual_payments(
+    status: Optional[str] = None, # 'pending', 'approved', 'rejected'
+    limit: int = 100,
+    offset: int = 0,
+    admin=Depends(get_current_admin),
+    db=Depends(get_db)
+):
+    """
+    Retrieve a list of manual payment proofs.
+    Accessible only by authenticated admin users.
+    """
+    conditions = []
+    params = []
+
+    if status:
+        conditions.append(f"mp.status = ${len(params) + 1}")
+        params.append(status)
+    
+    where_clause = "WHERE " + " AND ".join(conditions) if conditions else ""
+
+    manual_payments_records = await db.fetch(f"""
+        SELECT
+            mp.id::text, mp.user_id::text, u.email as user_email, mp.plan, mp.amount, mp.payment_method,
+            mp.transaction_id, mp.screenshot_url, mp.status, mp.admin_notes, mp.created_at
+        FROM manual_payments mp
+        JOIN users u ON mp.user_id = u.id
+        {where_clause}
+        ORDER BY mp.created_at DESC
+        LIMIT ${len(params) + 1} OFFSET ${len(params) + 2}
+    """, *params, limit, offset)
+
+    return [ManualPaymentProofItem(**r) for r in manual_payments_records]
+
+@router.put("/manual-payments/{manual_payment_id}", dependencies=[Depends(get_current_admin)])
+async def update_manual_payment_proof_status(
+    manual_payment_id: str,
+    data: ManualPaymentProofUpdateRequest,
+    db=Depends(get_db)
+):
+    """
+    Approve or reject a manual payment proof.
+    If approved, the user's plan is updated.
+    Accessible only by authenticated admin users.
+    """
+    # 1. Fetch the manual payment record
+    manual_payment = await db.fetchrow("""
+        SELECT mp.id, mp.user_id, mp.plan, mp.amount, mp.status
+        FROM manual_payments mp
+        WHERE mp.id = $1
+    """, manual_payment_id)
+
+    if not manual_payment:
+        raise HTTPException(status_code=404, detail="Manual payment proof not found.")
+    
+    if manual_payment["status"] != 'pending':
+        raise HTTPException(status_code=400, detail=f"Payment already {manual_payment['status']}.")
+
+    # 2. Update the manual_payments table status
+    updated_at = datetime.now(timezone.utc)
+    await db.execute("""
+        UPDATE manual_payments
+        SET status = $1, admin_notes = $2, updated_at = $3
+        WHERE id = $4
+    """, data.status, data.admin_notes, updated_at, manual_payment_id)
+
+    # 3. If approved, update user's plan and record in payments table
+    if data.status == 'approved':
+        user_id = manual_payment["user_id"]
+        plan = manual_payment["plan"]
+        amount = manual_payment["amount"]
+
+        # Normalize plan to lowercase for consistency with feature checks
+        plan_normalized = plan.lower()
+
+        # Determine plan expiration (e.g., 1 month from now for Pro)
+        # This logic should be consistent with how plans are defined
+        if plan_normalized == "pro": # Assuming 'pro' plan is 30 days
+            # Use timezone-aware datetime for expiration
+            expires_at = datetime.now(timezone.utc) + timedelta(days=30)
+        else:
+            expires_at = None # Or more complex logic for other plans
+
+        await db.execute("""
+            UPDATE users
+            SET plan = $1, plan_expires_at = $2
+            WHERE id = $3
+        """, plan_normalized, expires_at, user_id)
+
+        # Record this as a completed payment in the 'payments' table for historical data
+        await db.execute("""
+            INSERT INTO payments
+            (user_id, plan, amount, payment_method, transaction_id, status, notes)
+            SELECT user_id, plan, amount, payment_method, transaction_id, 'completed', 'Approved via manual proof'
+            FROM manual_payments
+            WHERE id = $1
+        """, manual_payment_id)
+
+        return {"message": f"Manual payment proof approved. User plan updated to {plan_normalized}."}
+    elif data.status == 'rejected':
+        return {"message": "Manual payment proof rejected."}
+    else:
+        raise HTTPException(status_code=400, detail="Invalid status provided.")
 
 
 # ═══════════════════════════════════════

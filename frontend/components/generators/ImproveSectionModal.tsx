@@ -39,7 +39,7 @@ export default function ImproveSectionModal({ isOpen, onClose }: { isOpen: boole
             <MagicWand size={32} weight="duotone" />
             AI Resume Improver
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full">
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full flex items-center justify-center">
             <X size={24} />
           </button>
         </div>

@@ -1,7 +1,6 @@
 'use client'
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
 import { CheckCircle, Warning, ArrowRight, EnvelopeOpen } from '@phosphor-icons/react'
 import Link from 'next/link'
 import api from '@/lib/api'
@@ -37,10 +36,7 @@ function VerifyEmailContent() {
   return (
     <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center p-6 text-center">
       <div className="max-w-md w-full glass-card p-10 border-white/10">
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-        >
+        <div>
           {status === 'loading' && (
             <div className="py-10">
                 <div className="w-16 h-16 border-4 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin mx-auto mb-6" />
@@ -73,7 +69,7 @@ function VerifyEmailContent() {
                </Link>
             </div>
           )}
-        </motion.div>
+        </div>
       </div>
     </div>
   )

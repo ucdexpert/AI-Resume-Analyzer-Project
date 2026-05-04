@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional, List
+from typing import Optional, List, Any
 from datetime import datetime
+from uuid import UUID
 
 class AdminLoginRequest(BaseModel):
     email: EmailStr
@@ -70,6 +71,32 @@ class PaymentCreate(BaseModel):
     payment_method: str
     transaction_id: Optional[str] = None
     notes: Optional[str] = None
+
+class ManualPaymentProofCreate(BaseModel):
+    user_id: str
+    plan: str
+    amount: int
+    payment_method: str  # e.g., "JazzCash", "Easypaisa"
+    transaction_id: str
+    screenshot_url: str # This will be the URL after the screenshot is uploaded to storage
+    notes: Optional[str] = None
+
+class ManualPaymentProofItem(BaseModel):
+    id: UUID
+    user_id: UUID
+    user_email: str # To display user info in admin panel
+    plan: str
+    amount: int
+    payment_method: str
+    transaction_id: str
+    screenshot_url: str
+    status: str # pending, approved, rejected
+    admin_notes: Optional[str] = None
+    created_at: datetime
+
+class ManualPaymentProofUpdateRequest(BaseModel):
+    status: str # approved, rejected
+    admin_notes: Optional[str] = None
 
 class SiteSettingUpdate(BaseModel):
     value: str

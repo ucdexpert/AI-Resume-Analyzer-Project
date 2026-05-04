@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { Envelope, ArrowLeft, CheckCircle, Warning } from '@phosphor-icons/react'
 import Link from 'next/link'
 import api from '@/lib/api'

@@ -1,22 +1,46 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { generateLinkedInSummary } from '../../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LinkedinLogo, Copy, Check } from '@phosphor-icons/react';
+import useAuthStore from '../../stores/useAuthStore';
+import UpgradeModal from '../shared/UpgradeModal';
+import api from '../../lib/api';
 
 export default function LinkedInGenerator({ resumeText }: { resumeText: string }) {
+  const { user } = useAuthStore();
+  const isPro = user?.plan?.toLowerCase() === 'pro';
+
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState('');
   const [copied, setCopied] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [usageCount, setUsageCount] = useState<number | null>(null);
+
+  // Fetch usage count for free users
+  useEffect(() => {
+    const fetchUsageCount = async () => {
+      if (!isPro && user) {
+        try {
+          const response = await api.get('/usage/linkedin-count');
+          setUsageCount(response.data.count || 0);
+        } catch (error) {
+          console.error('Failed to fetch usage count:', error);
+          setUsageCount(0);
+        }
+      }
+    };
+    fetchUsageCount();
+  }, [isPro, user]);
 
   const handleGenerate = async () => {
     setLoading(true);
     try {
       const data = await generateLinkedInSummary(resumeText);
-      
+
       let bioText = '';
-      
+
       if (typeof data === 'string') {
         bioText = data;
       } else if (data && typeof data.linkedin_summary === 'string') {
@@ -35,8 +59,17 @@ export default function LinkedInGenerator({ resumeText }: { resumeText: string }
       }
 
       setSummary(String(bioText));
-    } catch (err) {
-      alert("Failed to generate LinkedIn summary.");
+
+      // Increment usage count for free users
+      if (!isPro && usageCount !== null) {
+        setUsageCount(usageCount + 1);
+      }
+    } catch (err: any) {
+      if (err.response?.status === 403) {
+        setShowUpgradeModal(true);
+      } else {
+        alert("Failed to generate LinkedIn summary.");
+      }
       console.error('LinkedIn error:', err);
     } finally {
       setLoading(false);
@@ -50,16 +83,25 @@ export default function LinkedInGenerator({ resumeText }: { resumeText: string }
   };
 
   return (
-    <div className="glass-card p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-2xl font-heading font-bold flex items-center gap-3 text-brand-primary">
-          <LinkedinLogo size={32} weight="fill" />
-          LinkedIn Summary Generator
-        </h3>
+    <div className="glass-card p-4 sm:p-6 md:p-8">
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-xl sm:text-2xl font-heading font-bold flex items-center gap-2 sm:gap-3 text-brand-primary">
+            <LinkedinLogo size={24} weight="fill" className="sm:hidden flex-shrink-0" />
+            <LinkedinLogo size={32} weight="fill" className="hidden sm:block flex-shrink-0" />
+            <span className="truncate">LinkedIn Summary Generator</span>
+          </h3>
+          {!isPro && usageCount !== null && (
+            <p className="text-xs text-text-muted mt-1">
+              Free tier: {usageCount}/3 generations used
+            </p>
+          )}
+        </div>
         <button
           onClick={handleGenerate}
           disabled={loading}
-          className="neon-button !py-2 !px-4"
+          className="neon-button !py-2 !px-4 text-sm sm:text-base w-full sm:w-auto whitespace-nowrap"
         >
           {loading ? "Generating..." : "Generate Bio"}
         </button>

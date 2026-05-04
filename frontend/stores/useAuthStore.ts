@@ -5,6 +5,8 @@ interface User {
   name: string
   email: string
   analysis_count: number
+  plan?: string
+  is_verified?: boolean
 }
 
 interface AuthState {
