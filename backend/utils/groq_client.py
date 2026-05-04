@@ -108,6 +108,24 @@ def analyze_resume_with_ai(resume_text: str, job_description: str = None, lang: 
         # Filter out unexpected top-level keys
         response_data = {k: v for k, v in response_data.items() if k in allowed_keys}
 
+        # Sanitize section_checker to ensure it's a list of {name, exists}
+        if 'section_checker' in response_data and isinstance(response_data['section_checker'], list):
+            sanitized_sections = []
+            for item in response_data['section_checker']:
+                if isinstance(item, dict):
+                    name = item.get('name') or item.get('section') or item.get('title') or "Unknown Section"
+                    exists = item.get('exists') if 'exists' in item else item.get('found', False)
+                    sanitized_sections.append({"name": str(name), "exists": bool(exists)})
+                elif isinstance(item, str):
+                    sanitized_sections.append({"name": item, "exists": True})
+            
+            if sanitized_sections:
+                response_data['section_checker'] = sanitized_sections
+            else:
+                response_data['section_checker'] = defaults['section_checker']
+        else:
+            response_data['section_checker'] = defaults['section_checker']
+
         # Sanitize list fields to ensure they contain only strings
         list_fields = ['strengths', 'weaknesses', 'suggestions', 'ats_tips', 'matched_keywords']
         for field in list_fields:

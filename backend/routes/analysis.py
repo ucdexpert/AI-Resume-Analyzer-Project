@@ -127,6 +127,7 @@ async def analyze_resume(
         res['weaknesses'] = json.loads(res['weaknesses']) if isinstance(res.get('weaknesses'), str) else (res.get('weaknesses') or [])
         res['suggestions'] = json.loads(res['suggestions']) if isinstance(res.get('suggestions'), str) else (res.get('suggestions') or [])
         res['missing_keywords'] = json.loads(res['missing_keywords']) if isinstance(res.get('missing_keywords'), str) else (res.get('missing_keywords') or {'technical_skills': [], 'soft_skills': [], 'industry_terms': []})
+        res['section_checker'] = json.loads(res['section_checker']) if isinstance(res.get('section_checker'), str) else (res.get('section_checker') or [])
         res['salary_estimate'] = json.loads(res['salary_estimate']) if isinstance(res.get('salary_estimate'), str) else res.get('salary_estimate')
         res['career_path'] = json.loads(res['career_path']) if isinstance(res.get('career_path'), str) else res.get('career_path')
         res['interview_questions'] = json.loads(res['interview_questions']) if isinstance(res.get('interview_questions'), str) else (res.get('interview_questions') or [])
@@ -157,11 +158,11 @@ async def analyze_resume(
         analysis_id = await db.fetchval("""
             INSERT INTO analysis (
                 user_id, resume_id, overall_score, score_breakdown, ats_score, ats_tips,
-                strengths, weaknesses, suggestions, missing_keywords,
+                strengths, weaknesses, suggestions, missing_keywords, section_checker,
                 industry_feedback, salary_estimate, career_path, interview_questions
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
             RETURNING id
-        """, current_user["id"], resume_id, analysis_result.get("overall_score"), json.dumps(analysis_result.get("score_breakdown")), analysis_result.get("ats_score"), json.dumps(analysis_result.get("ats_tips")), json.dumps(analysis_result.get("strengths")), json.dumps(analysis_result.get("weaknesses")), json.dumps(analysis_result.get("suggestions")), json.dumps(analysis_result.get("missing_keywords")), analysis_result.get("industry_feedback"), json.dumps(analysis_result.get("salary_estimate")), json.dumps(analysis_result.get("career_path")), json.dumps(analysis_result.get("interview_questions")))
+        """, current_user["id"], resume_id, analysis_result.get("overall_score"), json.dumps(analysis_result.get("score_breakdown")), analysis_result.get("ats_score"), json.dumps(analysis_result.get("ats_tips")), json.dumps(analysis_result.get("strengths")), json.dumps(analysis_result.get("weaknesses")), json.dumps(analysis_result.get("suggestions")), json.dumps(analysis_result.get("missing_keywords")), json.dumps(analysis_result.get("section_checker")), analysis_result.get("industry_feedback"), json.dumps(analysis_result.get("salary_estimate")), json.dumps(analysis_result.get("career_path")), json.dumps(analysis_result.get("interview_questions")))
         
         analysis_result["id"] = str(analysis_id)
         
@@ -229,6 +230,7 @@ async def get_shared_analysis(
     res['weaknesses'] = json.loads(res['weaknesses']) if isinstance(res.get('weaknesses'), str) else (res.get('weaknesses') or [])
     res['suggestions'] = json.loads(res['suggestions']) if isinstance(res.get('suggestions'), str) else (res.get('suggestions') or [])
     res['missing_keywords'] = json.loads(res['missing_keywords']) if isinstance(res.get('missing_keywords'), str) else (res.get('missing_keywords') or {'technical_skills': [], 'soft_skills': [], 'industry_terms': []})
+    res['section_checker'] = json.loads(res['section_checker']) if isinstance(res.get('section_checker'), str) else (res.get('section_checker') or [])
     res['salary_estimate'] = json.loads(res['salary_estimate']) if isinstance(res.get('salary_estimate'), str) else res.get('salary_estimate')
     res['career_path'] = json.loads(res['career_path']) if isinstance(res.get('career_path'), str) else res.get('career_path')
     res['interview_questions'] = json.loads(res['interview_questions']) if isinstance(res.get('interview_questions'), str) else (res.get('interview_questions') or [])
@@ -263,6 +265,7 @@ async def get_analysis_history(
         res['weaknesses'] = json.loads(res['weaknesses']) if isinstance(res.get('weaknesses'), str) else (res.get('weaknesses') or [])
         res['suggestions'] = json.loads(res['suggestions']) if isinstance(res.get('suggestions'), str) else (res.get('suggestions') or [])
         res['missing_keywords'] = json.loads(res['missing_keywords']) if isinstance(res.get('missing_keywords'), str) else (res.get('missing_keywords') or {'technical_skills': [], 'soft_skills': [], 'industry_terms': []})
+        res['section_checker'] = json.loads(res['section_checker']) if isinstance(res.get('section_checker'), str) else (res.get('section_checker') or [])
         res['salary_estimate'] = json.loads(res['salary_estimate']) if isinstance(res.get('salary_estimate'), str) else res.get('salary_estimate')
         res['career_path'] = json.loads(res['career_path']) if isinstance(res.get('career_path'), str) else res.get('career_path')
         res['interview_questions'] = json.loads(res['interview_questions']) if isinstance(res.get('interview_questions'), str) else (res.get('interview_questions') or [])

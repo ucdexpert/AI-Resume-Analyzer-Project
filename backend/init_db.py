@@ -51,6 +51,7 @@ async def init_db():
                 weaknesses       JSONB,
                 suggestions      JSONB,
                 missing_keywords JSONB,
+                section_checker  JSONB DEFAULT '[]'::jsonb,
                 industry_feedback TEXT,
                 salary_estimate  JSONB,
                 career_path      JSONB,

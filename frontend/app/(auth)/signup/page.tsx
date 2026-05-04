@@ -3,11 +3,12 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { UserPlus, Envelope, Lock, User, Eye, EyeSlash } from '@phosphor-icons/react'
 import { signup } from '../../../lib/api'
-import { saveAuth } from '../auth-helper'
+import useAuthStore from '../../../stores/useAuthStore'
 import Link from 'next/link'
 
 export default function SignupPage() {
   const router = useRouter()
+  const { login: setAuth } = useAuthStore()
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -25,12 +26,14 @@ export default function SignupPage() {
     try {
       const { confirmPassword, ...signupData } = form
       const res = await signup(signupData)
-      saveAuth(res.access_token, {
+      setAuth(res.access_token, {
         name: res.user_name,
         email: res.user_email,
-        analysis_count: 0
+        analysis_count: 0,
+        plan: res.plan || 'free',
+        is_verified: res.is_verified || false
       })
-      router.push('/dashboard')
+      router.push('/')
     } catch (err: any) {
       setError(err.message || 'Signup failed')
     } finally {

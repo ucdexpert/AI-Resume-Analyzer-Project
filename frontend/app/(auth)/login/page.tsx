@@ -3,12 +3,13 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { SignIn, Envelope, Lock, Eye, EyeSlash } from '@phosphor-icons/react'
 import { login } from '../../../lib/api'
-import { saveAuth } from '../auth-helper'
+import useAuthStore from '../../../stores/useAuthStore'
 import Link from 'next/link'
 
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { login: setAuth } = useAuthStore()
 
   const [form, setForm] = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
@@ -22,10 +23,10 @@ function LoginContent() {
     const email = searchParams.get('email')
 
     if (token && name && email) {
-      saveAuth(token, { name, email, analysis_count: 0 })
-      router.push('/dashboard')
+      setAuth(token, { name, email, analysis_count: 0, plan: 'free', is_verified: true })
+      router.push('/')
     }
-  }, [searchParams, router])
+  }, [searchParams, router, setAuth])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,12 +34,14 @@ function LoginContent() {
     setError('')
     try {
       const res = await login(form)
-      saveAuth(res.access_token, {
+      setAuth(res.access_token, {
         name: res.user_name,
         email: res.user_email,
-        analysis_count: res.analysis_count || 0
+        analysis_count: res.analysis_count || 0,
+        plan: res.plan || 'free',
+        is_verified: res.is_verified || false
       })
-      router.push('/dashboard')
+      router.push('/')
     } catch (err: any) {
       setError(err.message || 'Invalid email or password')
     } finally {

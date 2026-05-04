@@ -130,7 +130,9 @@ async def signup(request: Request, data: SignupRequest, db=Depends(get_db)):
         "token_type": "bearer",
         "user_name": user["name"],
         "user_email": user["email"],
-        "analysis_count": 0
+        "analysis_count": 0,
+        "plan": "free",
+        "is_verified": False
     }
 
 @router.get("/verify-email")
@@ -159,7 +161,9 @@ async def login(request: Request, data: LoginRequest, db=Depends(get_db)):
         "token_type": "bearer",
         "user_name": user_dict["name"],
         "user_email": user_dict["email"],
-        "analysis_count": user_dict.get("analysis_count", 0)
+        "analysis_count": user_dict.get("analysis_count", 0),
+        "plan": user_dict.get("plan", "free"),
+        "is_verified": user_dict.get("is_verified", False)
     }
 
 @router.get("/me")
