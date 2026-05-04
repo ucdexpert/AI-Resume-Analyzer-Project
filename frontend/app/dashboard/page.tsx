@@ -269,7 +269,7 @@ function DashboardContent() {
   const latestHistory = history.length > 0 ? history[0].created_at : null;
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 max-w-7xl pt-24 sm:pt-28">
+    <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 max-w-7xl">
       <ImproveSectionModal
         isOpen={isImproveModalOpen}
         onClose={() => setIsImproveModalOpen(false)}

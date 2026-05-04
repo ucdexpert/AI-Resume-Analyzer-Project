@@ -53,7 +53,7 @@ export default function RootLayout({
           <ClientLayout>
             <div className="min-h-screen flex flex-col">
               <ConditionalNavbar />
-              <main className="flex-grow">
+              <main className="flex-grow pt-20 sm:pt-24">
                 {children}
               </main>
             </div>
