@@ -130,7 +130,9 @@ function WelcomeBanner({
               )}
               <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md border ${limitReached ? 'bg-brand-danger/10 border-brand-danger/20 text-brand-danger' : 'bg-white/5 border-white/10'}`}>
                 {limitReached ? <WarningCircle size={12} className="flex-shrink-0" /> : <ChartLine size={12} className="flex-shrink-0" />}
-                <span className="whitespace-nowrap">{analysisCount}/3 used</span>
+                <span className="whitespace-nowrap">
+                  {plan.toLowerCase() === 'pro' ? 'Unlimited' : `${analysisCount}/3 used`}
+                </span>
                 {limitReached && <a href="/pricing" className="ml-1 underline font-bold whitespace-nowrap">Upgrade</a>}
               </div>
             </div>
@@ -267,10 +269,10 @@ function DashboardContent() {
   const latestHistory = history.length > 0 ? history[0].created_at : null;
 
   return (
-    <div className="container mx-auto px-6 py-12 max-w-7xl pt-20">
-      <ImproveSectionModal 
-        isOpen={isImproveModalOpen} 
-        onClose={() => setIsImproveModalOpen(false)} 
+    <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 max-w-7xl pt-24 sm:pt-28">
+      <ImproveSectionModal
+        isOpen={isImproveModalOpen}
+        onClose={() => setIsImproveModalOpen(false)}
       />
 
       {/* Header Actions */}
@@ -447,29 +449,31 @@ function DashboardContent() {
             </div>
 
             {/* Section Status */}
-            <div className="glass-card p-8 border-brand-success/20">
-              <h3 className="text-2xl font-heading font-bold mb-6 flex items-center gap-3 text-brand-success">
-                <FileText size={32} weight="duotone" />
-                {t.sectionChecker}
-              </h3>
-              <p className="text-text-muted mb-6">
-                {t.sectionDesc}
-              </p>
-              <div className="flex flex-wrap gap-3">
-                {result.section_checker.map(section => (
-                  <span 
-                    key={typeof section.name === 'object' ? JSON.stringify(section.name) : section.name} 
-                    className={`px-3 py-1 rounded-full text-sm border flex items-center gap-2 ${
-                      section.exists 
-                        ? 'bg-brand-success/10 text-brand-success border-brand-success/20' 
-                        : 'bg-brand-danger/10 text-brand-danger border-brand-danger/20 opacity-50'
-                    }`}
-                  >
-                    {section.exists ? '✅' : '❌'} {typeof section.name === 'object' ? JSON.stringify(section.name) : section.name}
-                  </span>
-                ))}
+            {result.section_checker && result.section_checker.length > 0 && (
+              <div className="glass-card p-8 border-brand-success/20">
+                <h3 className="text-2xl font-heading font-bold mb-6 flex items-center gap-3 text-brand-success">
+                  <FileText size={32} weight="duotone" />
+                  {t.sectionChecker}
+                </h3>
+                <p className="text-text-muted mb-6">
+                  {t.sectionDesc}
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {result.section_checker.map(section => (
+                    <span
+                      key={typeof section.name === 'object' ? JSON.stringify(section.name) : section.name}
+                      className={`px-3 py-1 rounded-full text-sm border flex items-center gap-2 ${
+                        section.exists
+                          ? 'bg-brand-success/10 text-brand-success border-brand-success/20'
+                          : 'bg-brand-danger/10 text-brand-danger border-brand-danger/20 opacity-50'
+                      }`}
+                    >
+                      {section.exists ? '✅' : '❌'} {typeof section.name === 'object' ? JSON.stringify(section.name) : section.name}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
