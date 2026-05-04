@@ -1,9 +1,8 @@
-from weasyprint import HTML, CSS
-from weasyprint.text.fonts import FontConfiguration
+from playwright.sync_api import sync_playwright
 import io
 
 def generate_html_resume_pdf(data) -> bytes:
-    """Generate PDF from HTML templates matching frontend exactly"""
+    """Generate PDF from HTML templates using Playwright"""
 
     template_id = getattr(data, 'template_id', 'modern')
     theme_color = getattr(data, 'theme_color', '#00E5FF')
@@ -26,10 +25,13 @@ def generate_html_resume_pdf(data) -> bytes:
     else:
         html_content = generate_modern_html(data_dict, theme_color)
 
-    # Convert HTML to PDF
-    font_config = FontConfiguration()
-    html = HTML(string=html_content)
-    pdf_bytes = html.write_pdf(font_config=font_config)
+    # Convert HTML to PDF using Playwright
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page()
+        page.set_content(html_content)
+        pdf_bytes = page.pdf(format='A4', print_background=True)
+        browser.close()
 
     return pdf_bytes
 
