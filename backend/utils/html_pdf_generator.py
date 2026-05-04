@@ -1,8 +1,8 @@
-from playwright.sync_api import sync_playwright
+from playwright.async_api import async_playwright
 import io
 
-def generate_html_resume_pdf(data) -> bytes:
-    """Generate PDF from HTML templates using Playwright"""
+async def generate_html_resume_pdf(data) -> bytes:
+    """Generate PDF from HTML templates using Playwright Async API"""
 
     template_id = getattr(data, 'template_id', 'modern')
     theme_color = getattr(data, 'theme_color', '#00E5FF')
@@ -25,13 +25,13 @@ def generate_html_resume_pdf(data) -> bytes:
     else:
         html_content = generate_modern_html(data_dict, theme_color)
 
-    # Convert HTML to PDF using Playwright
-    with sync_playwright() as p:
-        browser = p.chromium.launch()
-        page = browser.new_page()
-        page.set_content(html_content)
-        pdf_bytes = page.pdf(format='A4', print_background=True)
-        browser.close()
+    # Convert HTML to PDF using Playwright Async API
+    async with async_playwright() as p:
+        browser = await p.chromium.launch()
+        page = await browser.new_page()
+        await page.set_content(html_content)
+        pdf_bytes = await page.pdf(format='A4', print_background=True)
+        await browser.close()
 
     return pdf_bytes
 

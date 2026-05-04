@@ -145,7 +145,7 @@ async def generate_pdf_endpoint(
     current_user=Depends(get_current_user)
 ):
     try:
-        pdf_bytes = generate_html_resume_pdf(data)
+        pdf_bytes = await generate_html_resume_pdf(data)
         return Response(
             content=pdf_bytes,
             media_type="application/pdf",
