@@ -13,41 +13,103 @@ def generate_resume_pdf(data) -> bytes:
                             leftMargin=0.7*inch, rightMargin=0.7*inch)
 
     styles = getSampleStyleSheet()
-    
-    # Custom Styles
-    name_style = ParagraphStyle('Name', fontSize=24, fontName='Helvetica-Bold',
-                                 textColor=colors.HexColor('#1a1a2e'), spaceAfter=12)
-    
-    header_style = ParagraphStyle('Header', fontSize=14, fontName='Helvetica-Bold',
-                                   textColor=colors.HexColor('#2563eb'), spaceBefore=12, spaceAfter=6)
-    
+
+    # Get template and theme from data
+    template_id = getattr(data, 'template_id', 'modern')
+    theme_color = getattr(data, 'theme_color', '#00E5FF')
+
+    # Template-specific configurations
+    template_configs = {
+        'modern': {
+            'name_size': 24,
+            'header_size': 14,
+            'bg_color': colors.HexColor('#1a1a2e'),
+            'use_sidebar': False,
+            'header_align': 0  # left
+        },
+        'minimal': {
+            'name_size': 22,
+            'header_size': 12,
+            'bg_color': colors.HexColor('#000000'),
+            'use_sidebar': False,
+            'header_align': 0
+        },
+        'classic': {
+            'name_size': 20,
+            'header_size': 13,
+            'bg_color': colors.HexColor('#2c3e50'),
+            'use_sidebar': False,
+            'header_align': 1  # center
+        },
+        'creative': {
+            'name_size': 26,
+            'header_size': 16,
+            'bg_color': colors.HexColor('#ec4899'),
+            'use_sidebar': True,
+            'header_align': 0
+        },
+        'executive': {
+            'name_size': 24,
+            'header_size': 15,
+            'bg_color': colors.HexColor('#7c3aed'),
+            'use_sidebar': False,
+            'header_align': 1
+        }
+    }
+
+    config = template_configs.get(template_id, template_configs['modern'])
+    primary_color = colors.HexColor(theme_color)
+
+    # Custom Styles based on template
+    name_style = ParagraphStyle('Name',
+                                fontSize=config['name_size'],
+                                fontName='Helvetica-Bold',
+                                textColor=primary_color,
+                                spaceAfter=12,
+                                alignment=config['header_align'])
+
+    header_style = ParagraphStyle('Header',
+                                   fontSize=config['header_size'],
+                                   fontName='Helvetica-Bold',
+                                   textColor=primary_color,
+                                   spaceBefore=12,
+                                   spaceAfter=6)
+
     normal_style = styles['Normal']
     normal_style.fontSize = 10
     normal_style.leading = 14
-    
+
     italic_style = styles['Italic']
     italic_style.fontSize = 10
-    
+
     story = []
 
     # ── Header Section ──────────────────
     story.append(Paragraph(data.full_name, name_style))
-    
+
     contact_parts = [data.email]
     if data.phone: contact_parts.append(data.phone)
     if data.location: contact_parts.append(data.location)
-    
+
     contact_text = " | ".join(contact_parts)
     story.append(Paragraph(contact_text, normal_style))
-    
+
     links = []
     if data.linkedin: links.append(f"LinkedIn: {data.linkedin}")
     if data.portfolio: links.append(f"Portfolio: {data.portfolio}")
     if links:
         story.append(Paragraph(" | ".join(links), normal_style))
-        
+
     story.append(Spacer(1, 10))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor('#2563eb')))
+
+    # Template-specific divider
+    if template_id == 'minimal':
+        story.append(HRFlowable(width="100%", thickness=0.5, color=colors.grey))
+    elif template_id == 'creative':
+        story.append(HRFlowable(width="50%", thickness=2, color=primary_color))
+    else:
+        story.append(HRFlowable(width="100%", thickness=1.5, color=primary_color))
+
     story.append(Spacer(1, 10))
 
     # ── Professional Summary ─────────────
@@ -95,7 +157,7 @@ def generate_resume_pdf(data) -> bytes:
             proj_dict = proj if isinstance(proj, dict) else proj.dict()
             story.append(Paragraph(f"<b>{proj_dict['name']}</b> ({proj_dict['tech_stack']})", normal_style))
             story.append(Paragraph(proj_dict['description'], normal_style))
-            
+
             links = []
             if proj_dict.get('live_link'): links.append(f"Live: {proj_dict['live_link']}")
             if proj_dict.get('github_link'): links.append(f"GitHub: {proj_dict['github_link']}")
