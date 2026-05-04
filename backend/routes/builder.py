@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from middleware.auth import get_current_user
 from models.builder import ResumeBuilderRequest
 from utils.db import get_db
-from utils.html_pdf_generator import generate_html_resume_pdf
+from utils.pdf_generator import generate_resume_pdf
 from utils.docx_generator import generate_resume_docx
 from utils.groq_client import generate_bullet_points
 from groq import Groq
@@ -145,7 +145,7 @@ async def generate_pdf_endpoint(
     current_user=Depends(get_current_user)
 ):
     try:
-        pdf_bytes = await generate_html_resume_pdf(data)
+        pdf_bytes = generate_resume_pdf(data)
         return Response(
             content=pdf_bytes,
             media_type="application/pdf",
