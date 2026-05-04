@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   List,
+  X,
   SignOut,
   User,
   Layout,
@@ -20,7 +21,7 @@ export default function Navbar() {
   const { user, isLoggedIn, logout } = useAuthStore();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
 
   useEffect(() => {
@@ -29,6 +30,7 @@ export default function Navbar() {
 
   const handleLogout = () => {
     logout();
+    setMobileMenuOpen(false);
     router.push("/");
   };
 
@@ -36,17 +38,17 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-lg border-b border-white/10 px-6 py-4">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-lg border-b border-white/10 px-4 sm:px-6 py-4">
         <div className="container mx-auto flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-14 h-14 md:w-16 md:h-16 bg-brand-primary/10 rounded-xl flex items-center justify-center overflow-hidden shadow-lg shadow-brand-primary/10 group-hover:scale-105 transition-transform">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
+            <div className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-brand-primary/10 rounded-xl flex items-center justify-center overflow-hidden shadow-lg shadow-brand-primary/10 group-hover:scale-105 transition-transform">
               <img
                 src="/logo-image.png"
                 alt="SkillSense Logo"
                 className="w-full h-full object-contain"
               />
             </div>
-            <span className="font-bold text-white text-xl md:text-2xl whitespace-nowrap font-heading tracking-tight">
+            <span className="font-bold text-white text-lg sm:text-xl md:text-2xl whitespace-nowrap font-heading tracking-tight">
               Skill<span className="text-brand-primary">Sense</span>
             </span>
           </Link>
@@ -78,13 +80,13 @@ export default function Navbar() {
               <Link href="/faq" className="text-text-muted hover:text-white transition-colors">FAQ</Link>
               <Link href="/contact" className="text-text-muted hover:text-white transition-colors">Contact</Link>
             </div>
-            
+
             <div className="h-6 w-px bg-white/10 mx-2" />
-            
+
             <div className="flex items-center gap-4">
               <LanguageToggle />
               <ThemeToggle />
-              
+
               {isLoggedIn ? (
                 <div className="flex items-center gap-4">
                   <Link href="/profile" className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/10 hover:bg-white/10 transition-colors">
@@ -122,77 +124,129 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Mobile Toggle */}
-          <div className="md:hidden flex items-center gap-4">
-            <LanguageToggle />
-            <ThemeToggle />
-            <button className="text-white" onClick={() => setIsOpen(!isOpen)}>
-              <List size={28} />
-            </button>
-          </div>
+          {/* Mobile Hamburger Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 text-white z-[60] relative"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X size={24} weight="bold" /> : <List size={24} weight="bold" />}
+          </button>
         </div>
+      </nav>
 
-        {/* Mobile Menu */}
-        {isOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 bg-[#0a0a0f] border-b border-white/10 p-6 flex flex-col gap-6 animate-in slide-in-from-top duration-300 max-h-[80vh] overflow-y-auto">
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 bg-black/95 backdrop-blur-lg z-50 flex flex-col p-6 pt-24 overflow-y-auto">
+          {/* Nav Links */}
+          <nav className="flex flex-col gap-4 mb-8">
             {isLoggedIn && (
               <>
                 <Link
                   href="/dashboard"
-                  onClick={() => setIsOpen(false)}
-                  className="text-lg text-text-primary flex items-center gap-3"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-white text-lg font-medium flex items-center gap-3 py-2 hover:text-brand-primary transition-colors"
                 >
-                  <Layout size={24} /> Dashboard
+                  <Layout size={24} weight="duotone" />
+                  Dashboard
                 </Link>
                 <Link
                   href="/builder"
-                  onClick={() => setIsOpen(false)}
-                  className="text-lg text-text-primary flex items-center gap-3"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-white text-lg font-medium flex items-center gap-3 py-2 hover:text-brand-primary transition-colors"
                 >
-                  <FileText size={24} /> Builder
-                </Link>
-                <Link
-                  href="/profile"
-                  onClick={() => setIsOpen(false)}
-                  className="text-lg text-text-primary flex items-center gap-3"
-                >
-                  <User size={24} /> Profile
+                  <FileText size={24} weight="duotone" />
+                  Builder
                 </Link>
               </>
             )}
-            <Link href="/about" onClick={() => setIsOpen(false)} className="text-lg text-text-primary">About</Link>
-            <Link href="/blog" onClick={() => setIsOpen(false)} className="text-lg text-text-primary">Blog</Link>
-            <Link href="/faq" onClick={() => setIsOpen(false)} className="text-lg text-text-primary">FAQ</Link>
-            <Link href="/contact" onClick={() => setIsOpen(false)} className="text-lg text-text-primary">Contact</Link>
-            
-            {!isLoggedIn ? (
-              <div className="flex flex-col gap-4 pt-4 border-t border-white/10">
-                <Link
-                  href="/login"
-                  onClick={() => setIsOpen(false)}
-                  className="text-lg text-text-primary"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/signup"
-                  onClick={() => setIsOpen(false)}
-                  className="bg-brand-primary text-white px-6 py-3 rounded-xl font-semibold text-center text-lg"
-                >
-                  Sign Up
-                </Link>
-              </div>
-            ) : (
+            <Link
+              href="/about"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-white text-lg font-medium py-2 hover:text-brand-primary transition-colors"
+            >
+              About
+            </Link>
+            <Link
+              href="/pricing"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-white text-lg font-medium py-2 hover:text-brand-primary transition-colors"
+            >
+              Pricing
+            </Link>
+            <Link
+              href="/blog"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-white text-lg font-medium py-2 hover:text-brand-primary transition-colors"
+            >
+              Blog
+            </Link>
+            <Link
+              href="/faq"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-white text-lg font-medium py-2 hover:text-brand-primary transition-colors"
+            >
+              FAQ
+            </Link>
+            <Link
+              href="/contact"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-white text-lg font-medium py-2 hover:text-brand-primary transition-colors"
+            >
+              Contact
+            </Link>
+          </nav>
+
+          {/* Language & Theme Toggle */}
+          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-white/10">
+            <LanguageToggle />
+            <ThemeToggle />
+          </div>
+
+          {/* User Section or Auth Buttons */}
+          {isLoggedIn ? (
+            <div className="mt-auto border-t border-white/10 pt-6">
+              <Link
+                href="/profile"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 mb-4"
+              >
+                <div className="w-10 h-10 bg-brand-primary/20 rounded-full flex items-center justify-center">
+                  <User size={20} className="text-brand-primary" weight="duotone" />
+                </div>
+                <div>
+                  <p className="text-white font-bold text-lg">{user?.name}</p>
+                  <p className="text-text-muted text-sm">{user?.email}</p>
+                </div>
+              </Link>
               <button
                 onClick={handleLogout}
-                className="text-lg text-brand-danger flex items-center gap-3 border-t border-white/5 pt-4"
+                className="w-full bg-red-500/10 text-red-400 border border-red-500/20 rounded-xl py-3 font-bold flex items-center justify-center gap-2 hover:bg-red-500/20 transition-colors"
               >
-                <SignOut size={24} /> Logout
+                <SignOut size={20} weight="bold" />
+                Logout
               </button>
-            )}
-          </div>
-        )}
-      </nav>
+            </div>
+          ) : (
+            <div className="mt-auto flex flex-col gap-3">
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-center py-3 border border-white/10 rounded-xl text-white font-bold hover:bg-white/5 transition-colors"
+              >
+                Login
+              </Link>
+              <Link
+                href="/signup"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-center py-3 bg-brand-primary rounded-xl text-black font-bold hover:bg-brand-primary/90 transition-colors shadow-lg shadow-brand-primary/20"
+              >
+                Sign Up
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
 
       <SupportModal
         isOpen={isSupportOpen}
