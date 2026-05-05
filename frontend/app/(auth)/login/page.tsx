@@ -81,10 +81,12 @@ function LoginContent() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
             <div className="relative">
+                <label htmlFor="email" className="sr-only">Email Address</label>
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
                     <Envelope size={20} />
                 </div>
                 <input
+                    id="email"
                     type="email"
                     placeholder="Email Address"
                     required
@@ -95,10 +97,12 @@ function LoginContent() {
             </div>
 
             <div className="relative">
+                <label htmlFor="password" className="sr-only">Password</label>
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
                     <Lock size={20} />
                 </div>
                 <input
+                    id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Password"
                     required
@@ -109,6 +113,7 @@ function LoginContent() {
                 <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-white transition-colors"
                 >
                     {showPassword ? <EyeSlash size={20} /> : <Eye size={20} />}

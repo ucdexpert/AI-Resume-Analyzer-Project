@@ -14,12 +14,12 @@ import {
   generateAISummary,
   generateBulletPoints
 } from '../../lib/api';
-import { 
-  User, Briefcase, GraduationCap, Wrench, 
-  DownloadSimple, Plus, Trash, FilePdf, 
-  CloudArrowUp, MagicWand, GithubLogo, Globe, 
+import {
+  User, Briefcase, GraduationCap, Wrench,
+  DownloadSimple, Plus, Trash, FilePdf,
+  CloudArrowUp, MagicWand, GithubLogo, Globe,
   Certificate, CheckCircle, PaintBrush, Selection,
-  Sparkle, FileDoc, FileText as FileTextIcon, ShareNetwork
+  Sparkle, FileDoc, FileText as FileTextIcon, ShareNetwork, Printer
 } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ResumePreview from './ResumePreview';
@@ -126,6 +126,7 @@ export default function ResumeBuilder() {
 
   const handleDownload = async () => {
     setLoading(true);
+    console.log("DEBUG: Sending store to PDF generation:", store);
     try {
       const blob = await generateBuilderPDF(store);
       const url = window.URL.createObjectURL(new Blob([blob]));
@@ -140,6 +141,67 @@ export default function ResumeBuilder() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePrintPDF = () => {
+    // Hide everything except the preview
+    const preview = document.querySelector('.resume-preview-container');
+    if (!preview) return;
+
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Please allow popups to print the resume');
+      return;
+    }
+
+    // Get the preview HTML
+    const previewHTML = preview.innerHTML;
+
+    // Write the HTML with print styles
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${store.full_name} - Resume</title>
+          <style>
+            @page {
+              size: A4;
+              margin: 0;
+            }
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            body {
+              width: 210mm;
+              height: 297mm;
+              margin: 0;
+              padding: 0;
+            }
+            @media print {
+              body {
+                width: 210mm;
+                height: 297mm;
+              }
+            }
+          </style>
+          <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
+        </head>
+        <body>
+          ${previewHTML}
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+
+    // Wait for content to load then print
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 500);
   };
 
   const handleDownloadDocx = async () => {
@@ -308,6 +370,11 @@ export default function ResumeBuilder() {
             {docLoading ? <div className="w-5 h-5 border-2 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin" /> : <FileDoc size={20} weight="fill" />}
             DOCX
             {!isPro && <Sparkle size={14} weight="fill" className="text-brand-primary animate-pulse" />}
+          </button>
+
+          <button onClick={handlePrintPDF} disabled={!store.full_name} className="glass-card border-brand-accent/30 text-brand-accent !py-2 !px-4 flex items-center gap-2 font-bold transition-all hover:bg-brand-accent/10">
+            <Printer size={20} weight="fill" />
+            Print PDF
           </button>
 
           <button onClick={handleDownload} disabled={loading || !store.full_name} className="neon-button !py-2 !px-6 flex items-center gap-2">
@@ -538,7 +605,7 @@ export default function ResumeBuilder() {
              </h3>
              <span className="text-[10px] uppercase tracking-widest text-text-muted bg-white/5 px-2 py-1 rounded border border-white/10">A4 Standard Format</span>
            </div>
-           <div className="h-auto lg:max-h-[85vh] lg:overflow-y-auto pr-2 custom-scrollbar shadow-2xl rounded-xl">
+           <div className="h-auto lg:max-h-[85vh] lg:overflow-y-auto pr-2 custom-scrollbar shadow-2xl rounded-xl resume-preview-container">
              <ResumePreview />
            </div>
         </div>

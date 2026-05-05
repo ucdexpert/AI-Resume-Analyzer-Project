@@ -27,12 +27,44 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://ai-resume-analyzer-pk.vercel.app'),
   title: 'SkillSense — AI-Powered Resume Analysis & Career Builder',
   description: 'Optimize your resume with SkillSense. Get instant ATS scores, AI-driven insights, and professional resume building tools designed to land your dream job.',
+  keywords: ['resume analyzer', 'ATS optimization', 'AI resume', 'career builder', 'job search', 'resume score'],
+  authors: [{ name: 'SkillSense Team' }],
+  creator: 'SkillSense',
   openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: '/',
+    siteName: 'SkillSense',
     title: 'SkillSense — Land Your Dream Job',
     description: 'Get professional resume analysis and ATS optimization with SkillSense AI.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'SkillSense - AI Resume Analyzer',
+      }
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SkillSense — AI Resume Analyzer',
+    description: 'Optimize your resume with AI-powered insights and ATS scoring.',
     images: ['/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
   manifest: '/manifest.json',
 };
@@ -48,6 +80,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link rel="preconnect" href="https://uzair001-ai-resume-api.hf.space" />
+        <link rel="dns-prefetch" href="https://uzair001-ai-resume-api.hf.space" />
+      </head>
       <body className={`${syne.variable} ${dmSans.variable} ${jetBrainsMono.variable} font-body bg-bg-dark text-text-primary`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <ClientLayout>

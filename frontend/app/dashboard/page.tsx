@@ -16,48 +16,61 @@ import { DashboardSkeleton } from '../../components/shared/Skeleton';
 
 // Heavy components - lazy load
 const KeywordMatch = dynamic(() => import('../../components/analysis/KeywordMatch'), {
+  ssr: false,
   loading: () => <div className="glass-card p-8 animate-pulse h-64" />
 });
 
 const ScoreTrend = dynamic(() => import('../../components/analysis/ScoreTrend'), {
+  ssr: false,
   loading: () => <div className="glass-card p-8 animate-pulse h-64" />
 });
 
 const PersonalAnalytics = dynamic(() => import('../../components/analysis/PersonalAnalytics'), {
+  ssr: false,
   loading: () => <div className="glass-card p-8 animate-pulse h-64" />
 });
 
 const AnalysisComparison = dynamic(() => import('../../components/analysis/AnalysisComparison'), {
+  ssr: false,
   loading: () => <div className="glass-card p-8 animate-pulse h-64" />
 });
 
 const CoverLetterGenerator = dynamic(() => import('../../components/generators/CoverLetterGenerator'), {
+  ssr: false,
   loading: () => <div className="glass-card p-8 animate-pulse h-96" />
 });
 
 const LinkedInGenerator = dynamic(() => import('../../components/generators/LinkedInGenerator'), {
+  ssr: false,
   loading: () => <div className="glass-card p-8 animate-pulse h-64" />
 });
 
-const ImproveSectionModal = dynamic(() => import('../../components/generators/ImproveSectionModal'));
+const ImproveSectionModal = dynamic(() => import('../../components/generators/ImproveSectionModal'), {
+  ssr: false
+});
 
 const CareerInsights = dynamic(() => import('../../components/analysis/CareerInsights'), {
+  ssr: false,
   loading: () => <div className="glass-card p-8 animate-pulse h-64" />
 });
 
 const InterviewQuestions = dynamic(() => import('../../components/analysis/InterviewQuestions'), {
+  ssr: false,
   loading: () => <div className="glass-card p-8 animate-pulse h-96" />
 });
 
 const MockInterview = dynamic(() => import('../../components/generators/MockInterview'), {
+  ssr: false,
   loading: () => <div className="glass-card p-8 animate-pulse h-96" />
 });
 
 const ResumeRewriter = dynamic(() => import('../../components/generators/ResumeRewriter'), {
+  ssr: false,
   loading: () => <div className="glass-card p-8 animate-pulse h-96" />
 });
 
 const JobMatcher = dynamic(() => import('../../components/analysis/JobMatcher'), {
+  ssr: false,
   loading: () => <div className="glass-card p-8 animate-pulse h-64" />
 });
 

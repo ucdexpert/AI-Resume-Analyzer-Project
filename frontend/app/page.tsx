@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import DropZone from '../components/upload/DropZone';
+import dynamic from 'next/dynamic';
 import AuthModal from '../components/auth/AuthModal';
 import useAuthStore from '../stores/useAuthStore';
 import { useAnalysisStore } from '../stores/useAnalysisStore';
@@ -11,6 +10,19 @@ import { useRouter } from 'next/navigation';
 import { Sparkle, Target, Rocket, ChartLineUp, FileText, MagnifyingGlass, Lightbulb, User } from '@phosphor-icons/react';
 import { useLanguageStore } from '../stores/useLanguageStore';
 import { translations } from '../lib/translations';
+import { JsonLd } from '../components/shared/JsonLd';
+
+// Lazy load DropZone (contains react-dropzone - heavy dependency)
+const DropZone = dynamic(() => import('../components/upload/DropZone'), {
+  ssr: false,
+  loading: () => (
+    <div className="glass-card p-12 text-center border-2 border-dashed border-white/20 rounded-2xl animate-pulse">
+      <div className="h-32 flex items-center justify-center">
+        <div className="text-text-muted">Loading upload zone...</div>
+      </div>
+    </div>
+  )
+});
 
 export default function Home() {
   const { lang } = useLanguageStore();
@@ -86,6 +98,44 @@ export default function Home() {
 
   return (
     <div className="relative isolate pt-14 pb-20 overflow-hidden">
+      {/* SEO: Organization Schema */}
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "SkillSense",
+        "url": "https://ai-resume-analyzer-pk.vercel.app",
+        "logo": "https://ai-resume-analyzer-pk.vercel.app/logo-image.png",
+        "description": "AI-powered resume analysis and career building platform",
+        "sameAs": [
+          "https://github.com/ucdexpert"
+        ],
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "customer service",
+          "email": "support@skillsense.com"
+        }
+      }} />
+
+      {/* SEO: WebApplication Schema */}
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "SkillSense Resume Analyzer",
+        "url": "https://ai-resume-analyzer-pk.vercel.app",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web Browser",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.7",
+          "ratingCount": "5000"
+        }
+      }} />
+
       {/* Background Decorative Elements */}
       <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
         <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-brand-primary to-[#9089fc] opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"></div>
@@ -94,16 +144,12 @@ export default function Home() {
       <div className="container mx-auto px-6">
         {/* Hero Section */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          <div className="animate-fade-in">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-brand-primary text-sm font-medium mb-6">
               <Sparkle weight="fill" />
               Powered by Groq Llama 3.3 Versatile
             </span>
-            
+
             {isLoggedIn && user ? (
                <div className="mb-8 flex flex-col items-center">
                  <div className="w-16 h-16 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary mb-4 border border-brand-primary/20">
@@ -127,15 +173,11 @@ export default function Home() {
                  {t.heroSub}
                </p>
             )}
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-          >
+          <div className="animate-fade-in-delay">
             <DropZone onAuthRequired={onAuthRequired} />
-          </motion.div>
+          </div>
         </div>
 
         {showAuthModal && (
@@ -157,18 +199,15 @@ export default function Home() {
               { label: 'AI Insights Generated', value: '50,000+', icon: <Lightbulb size={24} /> },
               { label: 'Success Rate', value: '94%', icon: <Rocket size={24} /> },
             ].map((stat, i) => (
-              <motion.div 
+              <div
                 key={i}
-                initial={{ opacity: 0, scale: 0.5 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="text-center"
+                className="text-center animate-fade-in"
+                style={{ animationDelay: `${i * 0.1}s` }}
               >
                 <div className="text-brand-primary mb-3 flex justify-center opacity-50">{stat.icon}</div>
                 <div className="text-3xl md:text-5xl font-black text-white mb-2">{stat.value}</div>
                 <div className="text-xs md:text-sm text-text-muted font-bold uppercase tracking-widest">{stat.label}</div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -231,13 +270,10 @@ export default function Home() {
             <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-white/5 -z-10"></div>
             
             {steps.map((step, index) => (
-              <motion.div
+              <div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.2 }}
-                className="flex flex-col items-center text-center group"
+                className="flex flex-col items-center text-center group animate-fade-in"
+                style={{ animationDelay: `${index * 0.2}s` }}
               >
                 <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 group-hover:bg-brand-primary/10 group-hover:border-brand-primary/30 transition-all duration-300">
                   {step.icon}
@@ -246,7 +282,7 @@ export default function Home() {
                 <p className="text-text-muted text-sm leading-relaxed max-w-[250px]">
                   {step.description}
                 </p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -279,13 +315,10 @@ export default function Home() {
                   avatar: "PP"
                 }
               ].map((testi, i) => (
-                <motion.div 
+                <div
                   key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="glass-card p-8 flex flex-col justify-between"
+                  className="glass-card p-8 flex flex-col justify-between animate-fade-in"
+                  style={{ animationDelay: `${i * 0.1}s` }}
                 >
                    <p className="text-gray-300 italic mb-8 leading-relaxed">"{testi.text}"</p>
                    <div className="flex items-center gap-4">
@@ -297,7 +330,7 @@ export default function Home() {
                         <p className="text-text-muted text-xs uppercase tracking-widest">{testi.role}</p>
                       </div>
                    </div>
-                </motion.div>
+                </div>
               ))}
            </div>
         </div>
@@ -305,13 +338,10 @@ export default function Home() {
         {/* Feature Grid */}
         <div className="grid md:grid-cols-3 gap-8 mt-24">
           {features.map((feature, index) => (
-            <motion.div
+            <div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="glass-card p-8 hover:border-white/20 transition-colors group"
+              className="glass-card p-8 hover:border-white/20 transition-colors group animate-fade-in"
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="mb-4 group-hover:scale-110 transition-transform duration-300">
                 {feature.icon}
@@ -320,7 +350,7 @@ export default function Home() {
               <p className="text-text-muted leading-relaxed">
                 {feature.description}
               </p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

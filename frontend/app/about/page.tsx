@@ -1,24 +1,20 @@
 "use client";
 
-import { motion } from "framer-motion";
+import Image from "next/image";
 import { Sparkle, ShieldCheck, Target, Users } from "@phosphor-icons/react";
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen py-20 px-6">
       <div className="container mx-auto max-w-4xl">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
-        >
+        <div className="text-center mb-16 animate-fade-in">
           <h1 className="text-4xl md:text-6xl font-heading font-bold mb-6">
             Empowering Your <span className="text-brand-primary">Career Journey</span>
           </h1>
           <p className="text-xl text-text-muted leading-relaxed">
             SkillSense is an AI-powered platform designed to bridge the gap between talented professionals and their dream jobs.
           </p>
-        </motion.div>
+        </div>
 
         <div className="space-y-20">
           <section className="grid md:grid-cols-2 gap-12 items-center">
@@ -61,11 +57,15 @@ export default function AboutPage() {
           <section className="text-center bg-white/5 rounded-3xl p-12 border border-white/10">
             <h2 className="text-3xl font-bold mb-6">Meet the Developer</h2>
             <div className="flex flex-col items-center">
-               <div className="w-32 h-32 rounded-full bg-brand-primary/20 flex items-center justify-center mb-4 border-2 border-brand-primary/30 overflow-hidden shadow-xl shadow-brand-primary/10">
-                 <img 
-                    src="/my-picture.jpeg" 
-                    alt="Muhammad Uzair" 
-                    className="w-full h-full object-cover"
+               <div className="w-32 h-32 rounded-full bg-brand-primary/20 flex items-center justify-center mb-4 border-2 border-brand-primary/30 overflow-hidden shadow-xl shadow-brand-primary/10 relative">
+                 <Image
+                    src="/my-picture.jpeg"
+                    alt="Muhammad Uzair - Full Stack Developer"
+                    width={128}
+                    height={128}
+                    loading="lazy"
+                    quality={85}
+                    className="object-cover"
                  />
                </div>
                <h3 className="text-xl font-bold">Muhammad Uzair</h3>

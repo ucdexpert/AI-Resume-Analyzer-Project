@@ -73,10 +73,12 @@ export default function SignupPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
             <div className="relative">
+                <label htmlFor="name" className="sr-only">Full Name</label>
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
                     <User size={20} />
                 </div>
                 <input
+                    id="name"
                     type="text"
                     placeholder="Full Name"
                     required
@@ -85,12 +87,14 @@ export default function SignupPage() {
                     className="w-full bg-white/5 border border-white/10 text-white rounded-lg pl-10 pr-4 py-3 outline-none focus:border-brand-primary/50 transition-colors"
                 />
             </div>
-            
+
             <div className="relative">
+                <label htmlFor="email" className="sr-only">Email Address</label>
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
                     <Envelope size={20} />
                 </div>
                 <input
+                    id="email"
                     type="email"
                     placeholder="Email Address"
                     required
@@ -101,10 +105,12 @@ export default function SignupPage() {
             </div>
 
             <div className="relative">
+                <label htmlFor="password" className="sr-only">Password</label>
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
                     <Lock size={20} />
                 </div>
                 <input
+                    id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Password"
                     required
@@ -115,6 +121,7 @@ export default function SignupPage() {
                 <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-white transition-colors"
                 >
                     {showPassword ? <EyeSlash size={20} /> : <Eye size={20} />}
@@ -122,10 +129,12 @@ export default function SignupPage() {
             </div>
 
             <div className="relative">
+                <label htmlFor="confirmPassword" className="sr-only">Confirm Password</label>
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
                     <Lock size={20} />
                 </div>
                 <input
+                    id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="Confirm Password"
                     required
@@ -136,6 +145,7 @@ export default function SignupPage() {
                 <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-white transition-colors"
                 >
                     {showConfirmPassword ? <EyeSlash size={20} /> : <Eye size={20} />}

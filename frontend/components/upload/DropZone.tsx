@@ -2,7 +2,6 @@
 
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { motion, AnimatePresence } from 'framer-motion';
 import { UploadSimple, FilePdf, X, CheckCircle, WarningCircle } from '@phosphor-icons/react';
 import { analyzeResume } from '../../lib/api';
 import { useAnalysisStore } from '../../stores/useAnalysisStore';
@@ -75,73 +74,49 @@ export default function DropZone({ onAuthRequired }: DropZoneProps) {
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6">
-      <motion.div
-        animate={{
-          borderColor: isDragActive ? '#3b82f6' : 'rgba(255, 255, 255, 0.1)',
-          scale: isDragActive ? 1.02 : 1,
-        }}
+      <div
         className={`relative group cursor-pointer glass-card border-2 border-dashed transition-all duration-300 ${
-          isDragActive ? 'bg-brand-primary/5' : 'hover:bg-white/5'
+          isDragActive ? 'bg-brand-primary/5 border-brand-primary scale-[1.02]' : 'hover:bg-white/5 border-white/10'
         }`}
       >
         <div {...getRootProps()} className="p-12 flex flex-col items-center justify-center w-full h-full">
           <input {...getInputProps()} />
 
-          <AnimatePresence mode="wait">
-            {!file ? (
-              <motion.div
-                key="idle"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="text-center"
-              >
-                <div className="mb-4 p-4 rounded-full bg-brand-primary/10 inline-block group-hover:scale-110 transition-transform duration-300">
-                  <UploadSimple size={48} weight="duotone" className="text-brand-primary" />
+          {!file ? (
+            <div className="text-center animate-fade-in">
+              <div className="mb-4 p-4 rounded-full bg-brand-primary/10 inline-block group-hover:scale-110 transition-transform duration-300">
+                <UploadSimple size={48} weight="duotone" className="text-brand-primary" />
+              </div>
+              <h3 className="text-xl font-heading mb-2">Drag & Drop Resume</h3>
+              <p className="text-text-muted">Support PDF only (Max 5MB)</p>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center w-full animate-fade-in">
+              <div className="flex items-center gap-4 p-4 glass-card border-brand-primary/30 w-full">
+                <FilePdf size={40} weight="duotone" className="text-brand-primary" />
+                <div className="flex-grow overflow-hidden">
+                  <p className="font-medium truncate">{file.name}</p>
+                  <p className="text-sm text-text-muted">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                 </div>
-                <h3 className="text-xl font-heading mb-2">Drag & Drop Resume</h3>
-                <p className="text-text-muted">Support PDF only (Max 5MB)</p>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="selected"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col items-center w-full"
-              >
-                <div className="flex items-center gap-4 p-4 glass-card border-brand-primary/30 w-full">
-                  <FilePdf size={40} weight="duotone" className="text-brand-primary" />
-                  <div className="flex-grow overflow-hidden">
-                    <p className="font-medium truncate">{file.name}</p>
-                    <p className="text-sm text-text-muted">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                  </div>
-                  <button
-                    onClick={removeFile}
-                    className="p-2 hover:bg-white/10 rounded-full transition-colors"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                <button
+                  onClick={removeFile}
+                  className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {isDragActive && (
-          <motion.div
-            layoutId="glow"
-            className="absolute inset-0 rounded-xl bg-brand-primary/5 shadow-neon-glow pointer-events-none"
-          />
+          <div className="absolute inset-0 rounded-xl bg-brand-primary/5 shadow-neon-glow pointer-events-none" />
         )}
-      </motion.div>
+      </div>
 
       {/* Optional Job Description */}
       {file && !isAnalyzing && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          className="w-full"
-        >
+        <div className="w-full animate-fade-in">
           <label className="block text-sm font-medium text-text-muted mb-2">
             Target Job Description (Optional)
           </label>
@@ -151,20 +126,18 @@ export default function DropZone({ onAuthRequired }: DropZoneProps) {
             placeholder="Paste the job description here to check matching keywords and percentage..."
             className="w-full h-32 p-4 bg-white/5 border border-white/10 rounded-xl text-text-primary placeholder:text-text-muted/50 focus:border-brand-primary/50 focus:ring-1 focus:ring-brand-primary/50 transition-all outline-none resize-none"
           />
-        </motion.div>
+        </div>
       )}
 
       {/* Action Button & Errors */}
       <div className="flex flex-col items-center gap-4">
         {file && !isAnalyzing && (
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+          <button
             onClick={handleUpload}
-            className="neon-button w-full sm:w-auto min-w-[200px]"
+            className="neon-button w-full sm:w-auto min-w-[200px] animate-fade-in"
           >
             Analyze Resume
-          </motion.button>
+          </button>
         )}
 
         {isAnalyzing && (
@@ -175,11 +148,9 @@ export default function DropZone({ onAuthRequired }: DropZoneProps) {
         )}
 
         {error && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className={`flex items-center gap-2 p-3 rounded-lg border ${
-              error.toLowerCase().includes('limit') 
+          <div
+            className={`flex items-center gap-2 p-3 rounded-lg border animate-fade-in ${
+              error.toLowerCase().includes('limit')
               ? 'text-brand-warning bg-brand-warning/10 border-brand-warning/20'
               : 'text-brand-danger bg-brand-danger/10 border-brand-danger/20'
             }`}
@@ -188,7 +159,7 @@ export default function DropZone({ onAuthRequired }: DropZoneProps) {
             <div className="flex flex-col">
               <span className="text-sm font-bold">{error}</span>
               {error.toLowerCase().includes('limit') && (
-                <button 
+                <button
                   onClick={() => setShowUpgradeModal(true)}
                   className="text-[10px] text-brand-warning underline font-black uppercase tracking-widest mt-1 text-left"
                 >
@@ -196,7 +167,7 @@ export default function DropZone({ onAuthRequired }: DropZoneProps) {
                 </button>
               )}
             </div>
-          </motion.div>
+          </div>
         )}
       </div>
 

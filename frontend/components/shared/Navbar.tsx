@@ -2,6 +2,7 @@
 import useAuthStore from "../../stores/useAuthStore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   List,
   X,
@@ -41,11 +42,15 @@ export default function Navbar() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-lg border-b border-white/10 px-4 sm:px-6 py-4">
         <div className="container mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
-            <div className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-brand-primary/10 rounded-xl flex items-center justify-center overflow-hidden shadow-lg shadow-brand-primary/10 group-hover:scale-105 transition-transform">
-              <img
+            <div className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-brand-primary/10 rounded-xl flex items-center justify-center overflow-hidden shadow-lg shadow-brand-primary/10 group-hover:scale-105 transition-transform relative">
+              <Image
                 src="/logo-image.png"
                 alt="SkillSense Logo"
-                className="w-full h-full object-contain"
+                width={64}
+                height={64}
+                priority
+                quality={85}
+                className="object-contain"
               />
             </div>
             <span className="font-bold text-white text-lg sm:text-xl md:text-2xl whitespace-nowrap font-heading tracking-tight">
