@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, UploadSimple, CheckCircle, WarningCircle, HourglassSimple } from '@phosphor-icons/react';
+import { submitManualPaymentProof } from '@/lib/api';
 
 interface PaymentProofModalProps {
   isOpen: boolean;
@@ -62,45 +63,7 @@ export default function PaymentProofModal({ isOpen, onClose, planName, price }: 
     }
 
     try {
-      // Correctly retrieve token from Zustand's persisted storage
-      const authStorage = localStorage.getItem('auth-storage');
-      let token = null;
-      if (authStorage) {
-          const parsedStorage = JSON.parse(authStorage);
-          token = parsedStorage.state?.token;
-      }
-
-      if (!token) {
-        throw new Error('User not authenticated. Please log in to submit payment proof.');
-      }
-
-      const response = await fetch('http://localhost:8000/api/manual-payments', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        let errorMessage = 'Failed to submit payment proof.';
-        if (result && result.detail) {
-          if (Array.isArray(result.detail)) {
-            errorMessage = result.detail.map((err: any) => {
-                // Ensure loc is an array before joining
-                const locPath = Array.isArray(err.loc) ? err.loc.join('.') : String(err.loc);
-                return `${locPath} - ${err.msg}`;
-            }).join('; ');
-          } else if (typeof result.detail === 'string') {
-            errorMessage = result.detail;
-          } else {
-            errorMessage = JSON.stringify(result.detail);
-          }
-        }
-        throw new Error(errorMessage);
-      }
+      const result = await submitManualPaymentProof(formData);
 
       let successMsg = 'Payment proof submitted successfully!';
       if (result && result.message) {

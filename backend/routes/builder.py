@@ -6,6 +6,7 @@ from utils.db import get_db
 from utils.pdf_generator import generate_resume_pdf
 from utils.docx_generator import generate_resume_docx
 from utils.groq_client import generate_bullet_points
+from utils.json_utils import safe_json_loads
 from groq import Groq
 import os
 import json
@@ -86,11 +87,11 @@ async def get_resume(
         return {}
 
     result = dict(row)
-    result["experience"] = json.loads(result["experience"]) if result["experience"] else []
-    result["education"] = json.loads(result["education"]) if result["education"] else []
-    result["skills"] = json.loads(result["skills"]) if result["skills"] else []
-    result["projects"] = json.loads(result["projects"]) if result["projects"] else []
-    result["certifications"] = json.loads(result["certifications"]) if result["certifications"] else []
+    result["experience"] = safe_json_loads(result.get("experience"), [])
+    result["education"] = safe_json_loads(result.get("education"), [])
+    result["skills"] = safe_json_loads(result.get("skills"), [])
+    result["projects"] = safe_json_loads(result.get("projects"), [])
+    result["certifications"] = safe_json_loads(result.get("certifications"), [])
     
     # Convert UUIDs to strings
     result["id"] = str(result["id"])
@@ -115,11 +116,11 @@ async def get_public_resume(
         raise HTTPException(status_code=404, detail="Resume not found")
 
     result = dict(row)
-    result["experience"] = json.loads(result["experience"]) if result["experience"] else []
-    result["education"] = json.loads(result["education"]) if result["education"] else []
-    result["skills"] = json.loads(result["skills"]) if result["skills"] else []
-    result["projects"] = json.loads(result["projects"]) if result["projects"] else []
-    result["certifications"] = json.loads(result["certifications"]) if result["certifications"] else []
+    result["experience"] = safe_json_loads(result.get("experience"), [])
+    result["education"] = safe_json_loads(result.get("education"), [])
+    result["skills"] = safe_json_loads(result.get("skills"), [])
+    result["projects"] = safe_json_loads(result.get("projects"), [])
+    result["certifications"] = safe_json_loads(result.get("certifications"), [])
     
     # Minimal data for public view
     return {

@@ -28,7 +28,6 @@ const nextConfig = {
 
   // Enable experimental features for better performance
   experimental: {
-    // optimizeCss: true, // Disabled - requires critters package
     optimizePackageImports: ['@phosphor-icons/react', 'framer-motion', 'recharts'],
   },
 

@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+export const BASE_URL = API_URL.replace(/\/api$/, '');
 
 const api = axios.create({
   baseURL: API_URL,
@@ -289,6 +290,28 @@ export const getManualPaymentHistory = async () => {
     return response.data;
   } catch (error: any) {
     throw new Error(error.response?.data?.detail || 'Failed to fetch payment history');
+  }
+};
+
+export const submitManualPaymentProof = async (formData: FormData) => {
+  try {
+    const response = await api.post('/manual-payments', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    const detail = error.response?.data?.detail;
+    let message = 'Failed to submit payment proof.';
+    if (detail) {
+      if (Array.isArray(detail)) {
+        message = detail.map((err: any) => `${err.loc.join('.')} - ${err.msg}`).join('; ');
+      } else {
+        message = detail;
+      }
+    }
+    throw new Error(message);
   }
 };
 

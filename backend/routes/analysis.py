@@ -10,6 +10,7 @@ from utils.db import get_db
 from utils.notifications import send_analysis_email
 from utils.pdf_generator import generate_analysis_report_pdf
 from utils.api_logger import log_api_usage
+from utils.json_utils import safe_json_loads
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -121,17 +122,17 @@ async def analyze_resume(
         res = dict(existing_analysis_record)
         
         # Robustly parse JSON and handle NULL values
-        res['score_breakdown'] = json.loads(res['score_breakdown']) if isinstance(res.get('score_breakdown'), str) else (res.get('score_breakdown') or {'formatting': 0, 'skills': 0, 'experience': 0, 'education': 0, 'summary': 0})
-        res['ats_tips'] = json.loads(res['ats_tips']) if isinstance(res.get('ats_tips'), str) else (res.get('ats_tips') or [])
-        res['strengths'] = json.loads(res['strengths']) if isinstance(res.get('strengths'), str) else (res.get('strengths') or [])
-        res['weaknesses'] = json.loads(res['weaknesses']) if isinstance(res.get('weaknesses'), str) else (res.get('weaknesses') or [])
-        res['suggestions'] = json.loads(res['suggestions']) if isinstance(res.get('suggestions'), str) else (res.get('suggestions') or [])
-        res['missing_keywords'] = json.loads(res['missing_keywords']) if isinstance(res.get('missing_keywords'), str) else (res.get('missing_keywords') or {'technical_skills': [], 'soft_skills': [], 'industry_terms': []})
-        res['section_checker'] = json.loads(res['section_checker']) if isinstance(res.get('section_checker'), str) else (res.get('section_checker') or [])
-        res['salary_estimate'] = json.loads(res['salary_estimate']) if isinstance(res.get('salary_estimate'), str) else res.get('salary_estimate')
-        res['career_path'] = json.loads(res['career_path']) if isinstance(res.get('career_path'), str) else res.get('career_path')
-        res['interview_questions'] = json.loads(res['interview_questions']) if isinstance(res.get('interview_questions'), str) else (res.get('interview_questions') or [])
-        res['matched_keywords'] = json.loads(res['matched_keywords']) if isinstance(res.get('matched_keywords'), str) else (res.get('matched_keywords') or [])
+        res['score_breakdown'] = safe_json_loads(res.get('score_breakdown'), {'formatting': 0, 'skills': 0, 'experience': 0, 'education': 0, 'summary': 0})
+        res['ats_tips'] = safe_json_loads(res.get('ats_tips'), [])
+        res['strengths'] = safe_json_loads(res.get('strengths'), [])
+        res['weaknesses'] = safe_json_loads(res.get('weaknesses'), [])
+        res['suggestions'] = safe_json_loads(res.get('suggestions'), [])
+        res['missing_keywords'] = safe_json_loads(res.get('missing_keywords'), {'technical_skills': [], 'soft_skills': [], 'industry_terms': []})
+        res['section_checker'] = safe_json_loads(res.get('section_checker'), [])
+        res['salary_estimate'] = safe_json_loads(res.get('salary_estimate'))
+        res['career_path'] = safe_json_loads(res.get('career_path'))
+        res['interview_questions'] = safe_json_loads(res.get('interview_questions'), [])
+        res['matched_keywords'] = safe_json_loads(res.get('matched_keywords'), [])
 
         res['id'] = str(res['id'])
         res['user_id'] = str(res['user_id'])
@@ -224,17 +225,17 @@ async def get_shared_analysis(
     res = dict(row)
     
     # Robustly parse JSON and handle NULL values
-    res['score_breakdown'] = json.loads(res['score_breakdown']) if isinstance(res.get('score_breakdown'), str) else (res.get('score_breakdown') or {'formatting': 0, 'skills': 0, 'experience': 0, 'education': 0, 'summary': 0})
-    res['ats_tips'] = json.loads(res['ats_tips']) if isinstance(res.get('ats_tips'), str) else (res.get('ats_tips') or [])
-    res['strengths'] = json.loads(res['strengths']) if isinstance(res.get('strengths'), str) else (res.get('strengths') or [])
-    res['weaknesses'] = json.loads(res['weaknesses']) if isinstance(res.get('weaknesses'), str) else (res.get('weaknesses') or [])
-    res['suggestions'] = json.loads(res['suggestions']) if isinstance(res.get('suggestions'), str) else (res.get('suggestions') or [])
-    res['missing_keywords'] = json.loads(res['missing_keywords']) if isinstance(res.get('missing_keywords'), str) else (res.get('missing_keywords') or {'technical_skills': [], 'soft_skills': [], 'industry_terms': []})
-    res['section_checker'] = json.loads(res['section_checker']) if isinstance(res.get('section_checker'), str) else (res.get('section_checker') or [])
-    res['salary_estimate'] = json.loads(res['salary_estimate']) if isinstance(res.get('salary_estimate'), str) else res.get('salary_estimate')
-    res['career_path'] = json.loads(res['career_path']) if isinstance(res.get('career_path'), str) else res.get('career_path')
-    res['interview_questions'] = json.loads(res['interview_questions']) if isinstance(res.get('interview_questions'), str) else (res.get('interview_questions') or [])
-    res['matched_keywords'] = json.loads(res['matched_keywords']) if isinstance(res.get('matched_keywords'), str) else (res.get('matched_keywords') or [])
+    res['score_breakdown'] = safe_json_loads(res.get('score_breakdown'), {'formatting': 0, 'skills': 0, 'experience': 0, 'education': 0, 'summary': 0})
+    res['ats_tips'] = safe_json_loads(res.get('ats_tips'), [])
+    res['strengths'] = safe_json_loads(res.get('strengths'), [])
+    res['weaknesses'] = safe_json_loads(res.get('weaknesses'), [])
+    res['suggestions'] = safe_json_loads(res.get('suggestions'), [])
+    res['missing_keywords'] = safe_json_loads(res.get('missing_keywords'), {'technical_skills': [], 'soft_skills': [], 'industry_terms': []})
+    res['section_checker'] = safe_json_loads(res.get('section_checker'), [])
+    res['salary_estimate'] = safe_json_loads(res.get('salary_estimate'))
+    res['career_path'] = safe_json_loads(res.get('career_path'))
+    res['interview_questions'] = safe_json_loads(res.get('interview_questions'), [])
+    res['matched_keywords'] = safe_json_loads(res.get('matched_keywords'), [])
 
     res['id'] = str(res['id'])
     res['user_id'] = str(res['user_id'])
@@ -259,17 +260,17 @@ async def get_analysis_history(
         res = dict(row)
         
         # Robustly parse JSON and handle NULL values
-        res['score_breakdown'] = json.loads(res['score_breakdown']) if isinstance(res.get('score_breakdown'), str) else (res.get('score_breakdown') or {'formatting': 0, 'skills': 0, 'experience': 0, 'education': 0, 'summary': 0})
-        res['ats_tips'] = json.loads(res['ats_tips']) if isinstance(res.get('ats_tips'), str) else (res.get('ats_tips') or [])
-        res['strengths'] = json.loads(res['strengths']) if isinstance(res.get('strengths'), str) else (res.get('strengths') or [])
-        res['weaknesses'] = json.loads(res['weaknesses']) if isinstance(res.get('weaknesses'), str) else (res.get('weaknesses') or [])
-        res['suggestions'] = json.loads(res['suggestions']) if isinstance(res.get('suggestions'), str) else (res.get('suggestions') or [])
-        res['missing_keywords'] = json.loads(res['missing_keywords']) if isinstance(res.get('missing_keywords'), str) else (res.get('missing_keywords') or {'technical_skills': [], 'soft_skills': [], 'industry_terms': []})
-        res['section_checker'] = json.loads(res['section_checker']) if isinstance(res.get('section_checker'), str) else (res.get('section_checker') or [])
-        res['salary_estimate'] = json.loads(res['salary_estimate']) if isinstance(res.get('salary_estimate'), str) else res.get('salary_estimate')
-        res['career_path'] = json.loads(res['career_path']) if isinstance(res.get('career_path'), str) else res.get('career_path')
-        res['interview_questions'] = json.loads(res['interview_questions']) if isinstance(res.get('interview_questions'), str) else (res.get('interview_questions') or [])
-        res['matched_keywords'] = json.loads(res['matched_keywords']) if isinstance(res.get('matched_keywords'), str) else (res.get('matched_keywords') or [])
+        res['score_breakdown'] = safe_json_loads(res.get('score_breakdown'), {'formatting': 0, 'skills': 0, 'experience': 0, 'education': 0, 'summary': 0})
+        res['ats_tips'] = safe_json_loads(res.get('ats_tips'), [])
+        res['strengths'] = safe_json_loads(res.get('strengths'), [])
+        res['weaknesses'] = safe_json_loads(res.get('weaknesses'), [])
+        res['suggestions'] = safe_json_loads(res.get('suggestions'), [])
+        res['missing_keywords'] = safe_json_loads(res.get('missing_keywords'), {'technical_skills': [], 'soft_skills': [], 'industry_terms': []})
+        res['section_checker'] = safe_json_loads(res.get('section_checker'), [])
+        res['salary_estimate'] = safe_json_loads(res.get('salary_estimate'))
+        res['career_path'] = safe_json_loads(res.get('career_path'))
+        res['interview_questions'] = safe_json_loads(res.get('interview_questions'), [])
+        res['matched_keywords'] = safe_json_loads(res.get('matched_keywords'), [])
 
         res['id'] = str(res['id'])
         res['user_id'] = str(res['user_id'])

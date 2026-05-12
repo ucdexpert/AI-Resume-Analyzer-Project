@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { adminApi } from '@/lib/adminApi'
+import { BASE_URL } from '@/lib/api'
 import { 
     CheckCircle, 
     XCircle, 
@@ -157,7 +158,7 @@ export default function AdminManualPayments() {
                                                 className="group relative w-16 h-12 bg-black rounded-lg border border-white/10 overflow-hidden flex items-center justify-center hover:border-brand-primary transition-all"
                                             >
                                                 <img 
-                                                    src={`http://localhost:8000${p.screenshot_url}`} 
+                                                    src={`${BASE_URL}${p.screenshot_url}`} 
                                                     alt="Proof" 
                                                     className="w-full h-full object-cover opacity-50 group-hover:opacity-100 transition-opacity"
                                                 />
@@ -220,11 +221,10 @@ export default function AdminManualPayments() {
                             onClick={(e) => e.stopPropagation()}
                         >
                             <img 
-                                src={`http://localhost:8000${selectedImage}`} 
+                                src={`${BASE_URL}${selectedImage}`} 
                                 alt="Payment Proof Full" 
                                 className="w-full h-full max-h-[75vh] object-contain rounded-xl shadow-2xl"
-                            />
-                            <button 
+                            />                            <button 
                                 onClick={() => setSelectedImage(null)}
                                 className="absolute top-4 right-4 p-2 bg-black/50 text-white rounded-full hover:bg-black transition-colors backdrop-blur-md"
                             >

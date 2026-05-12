@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
-import AuthModal from '../components/auth/AuthModal';
 import useAuthStore from '../stores/useAuthStore';
 import { useAnalysisStore } from '../stores/useAnalysisStore';
 import { analyzeResume } from '../lib/api';
@@ -12,7 +11,7 @@ import { useLanguageStore } from '../stores/useLanguageStore';
 import { translations } from '../lib/translations';
 import { JsonLd } from '../components/shared/JsonLd';
 
-// Lazy load DropZone (contains react-dropzone - heavy dependency)
+// Lazy load heavy components
 const DropZone = dynamic(() => import('../components/upload/DropZone'), {
   ssr: false,
   loading: () => (
@@ -22,6 +21,10 @@ const DropZone = dynamic(() => import('../components/upload/DropZone'), {
       </div>
     </div>
   )
+});
+
+const AuthModal = dynamic(() => import('../components/auth/AuthModal'), {
+  ssr: false
 });
 
 export default function Home() {

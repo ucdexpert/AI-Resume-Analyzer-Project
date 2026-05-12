@@ -14,7 +14,7 @@ import {
   ArrowLeft,
   MagnifyingGlass
 } from "@phosphor-icons/react";
-import { getManualPaymentHistory } from "@/lib/api";
+import { getManualPaymentHistory, BASE_URL } from "@/lib/api";
 import Link from "next/link";
 
 export default function BillingHistoryPage() {
@@ -209,12 +209,11 @@ export default function BillingHistoryPage() {
 
                   <div className="mt-6 flex justify-end">
                     <a 
-                      href={`http://localhost:8000${item.screenshot_url}`}
+                      href={`${BASE_URL}${item.screenshot_url}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-brand-primary hover:underline flex items-center gap-1 font-bold"
-                    >
-                      <MagnifyingGlass size={14} />
+                    >                      <MagnifyingGlass size={14} />
                       View Payment Proof
                     </a>
                   </div>
