@@ -77,7 +77,7 @@ async def google_callback(code: str, db=Depends(get_db)):
     
     # 3. Optimize DB logic: Get user or create in one/two efficient calls
     # We use sub (Google ID) for more reliable lookup
-    user = await db.fetchrow("SELECT id, name, email, analysis_count, is_verified FROM users WHERE google_id = $1 OR email = $2", google_id, email)
+    user = await db.fetchrow("SELECT id, name, email, analysis_count, is_verified, plan FROM users WHERE google_id = $1 OR email = $2", google_id, email)
     
     if not user:
         # Create new user
@@ -85,7 +85,7 @@ async def google_callback(code: str, db=Depends(get_db)):
             INSERT INTO users (name, email, google_id, is_verified, plan)
             VALUES ($1, $2, $3, true, 'free')
             ON CONFLICT (email) DO UPDATE SET google_id = EXCLUDED.google_id, is_verified = true
-            RETURNING id, name, email, analysis_count, is_verified
+            RETURNING id, name, email, analysis_count, is_verified, plan
         """, name, email, google_id)
     
     # 4. Generate app token
@@ -93,7 +93,8 @@ async def google_callback(code: str, db=Depends(get_db)):
     
     # Redirect back to frontend with minimal payload
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-    return RedirectResponse(url=f"{frontend_url}/login?token={token}&name={user['name']}&email={user['email']}")
+    plan = user.get("plan", "free")
+    return RedirectResponse(url=f"{frontend_url}/login?token={token}&name={user['name']}&email={user['email']}&plan={plan}")
 
 @router.post("/signup")
 @limiter.limit("5/minute")

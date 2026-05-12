@@ -118,12 +118,18 @@ export default function ProfilePage() {
                       <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-1">Analyses Used</p>
                       <div className="flex items-end gap-2">
                         <span className="text-4xl font-bold text-white">{user?.analysis_count || 0}</span>
-                        <span className="text-gray-600 mb-1">/ 3 free</span>
+                        <span className="text-gray-600 mb-1">
+                          {user?.plan?.toLowerCase() === 'pro' ? '/ Unlimited' : '/ 3 free'}
+                        </span>
                       </div>
                       <div className="w-full bg-white/5 h-2 rounded-full mt-4 overflow-hidden">
                         <div 
                           className="bg-brand-primary h-full" 
-                          style={{ width: `${Math.min(((user?.analysis_count || 0) / 3) * 100, 100)}%` }}
+                          style={{ 
+                            width: user?.plan?.toLowerCase() === 'pro' 
+                              ? '100%' 
+                              : `${Math.min(((user?.analysis_count || 0) / 3) * 100, 100)}%` 
+                          }}
                         ></div>
                       </div>
                    </div>

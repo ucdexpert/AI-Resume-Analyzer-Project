@@ -21,9 +21,10 @@ function LoginContent() {
     const token = searchParams.get('token')
     const name = searchParams.get('name')
     const email = searchParams.get('email')
+    const plan = searchParams.get('plan') || 'free'
 
     if (token && name && email) {
-      setAuth(token, { name, email, analysis_count: 0, plan: 'free', is_verified: true })
+      setAuth(token, { name, email, analysis_count: 0, plan, is_verified: true })
       router.push('/')
     }
   }, [searchParams, router, setAuth])
