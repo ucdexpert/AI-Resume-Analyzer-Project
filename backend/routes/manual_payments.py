@@ -30,8 +30,8 @@ async def upload_screenshot_to_storage(file: UploadFile) -> str:
         raise HTTPException(status_code=500, detail=f"Could not save file: {e}")
 
     # Return the URL to access the locally saved file
-    # This assumes your FastAPI app will serve static files from /uploaded_screenshots
-    return f"/uploaded_screenshots/{unique_filename}"
+    # This assumes your FastAPI app will serve static files from /api/uploaded_screenshots
+    return f"/api/uploaded_screenshots/{unique_filename}"
 
 
 @router.post("/manual-payments", status_code=status.HTTP_201_CREATED)

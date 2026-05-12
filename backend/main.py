@@ -48,7 +48,8 @@ app.include_router(password.router, prefix="/api")
 app.include_router(manual_payments.router, prefix="/api")
 
 os.makedirs("uploaded_screenshots", exist_ok=True) # New line to ensure directory exists
-# Serve static files for uploaded screenshots
+# Serve static files for uploaded screenshots (both paths for compatibility)
+app.mount("/api/uploaded_screenshots", StaticFiles(directory="uploaded_screenshots"), name="uploaded_screenshots_api")
 app.mount("/uploaded_screenshots", StaticFiles(directory="uploaded_screenshots"), name="uploaded_screenshots")
 
 @app.get("/")

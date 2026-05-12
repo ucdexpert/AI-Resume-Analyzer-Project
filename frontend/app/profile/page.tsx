@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import useAuthStore from "@/stores/useAuthStore";
 import { motion } from "framer-motion";
 import { User, Envelope, Calendar, Shield, CreditCard, Clock, Warning, CheckCircle } from "@phosphor-icons/react";
-import api from "@/lib/api";
+import api, { getMe } from "@/lib/api";
 import Link from "next/link";
 
 export default function ProfilePage() {
-  const { user, isLoggedIn } = useAuthStore();
+  const { user, isLoggedIn, setUser } = useAuthStore();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -20,11 +20,17 @@ export default function ProfilePage() {
 
   const fetchProfileData = async () => {
     try {
-      // In a real app, we'd have a specific profile stats endpoint
-      // For now, we'll just simulate or use analysis count from user
+      const freshUser = await getMe();
+      setUser({
+        name: freshUser.name,
+        email: freshUser.email,
+        analysis_count: freshUser.analysis_count,
+        plan: freshUser.plan,
+        is_verified: freshUser.is_verified
+      });
       setLoading(false);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to fetch fresh user data:", err);
       setLoading(false);
     }
   };
